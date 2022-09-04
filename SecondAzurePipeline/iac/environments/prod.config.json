@@ -1,0 +1,5 @@
+{
+    "templateFile": "main.bicep",
+    "subscriptionId": "xxxxx-c673-4c07-bc35-xxxxxx",
+    "location": "swedencentral"
+}
