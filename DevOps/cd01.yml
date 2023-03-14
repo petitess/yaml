@@ -10,9 +10,6 @@ trigger:
 pool:
   vmImage: ubuntu-20.04
 
-variables:
-  environment: prod
-
 parameters:
   - name: environments
     type: object
