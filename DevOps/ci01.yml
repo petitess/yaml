@@ -1,4 +1,4 @@
-##trigger: none
+#trigger: none
 
 pool:
   vmImage: ubuntu-20.04
@@ -33,7 +33,7 @@ stages:
               - task: AzureCLI@2
                 displayName: What-if deployment
                 inputs:
-                  azureSubscription: sp-platform-test-01
+                  azureSubscription: sp-landingzones-test-01
                   scriptType: pscore
                   scriptPath: iac/deploy.ps1
                   arguments: ${{ environment }} what-if
