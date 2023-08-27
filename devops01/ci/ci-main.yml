@@ -1,0 +1,53 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - ci/ci-main.yml
+      - main
+
+pool:
+  vmImage: ubuntu-22.04
+
+variables:
+  azureSubscription: 'sub-labb-01'
+
+parameters:
+  - name: environment
+    type: string
+    default: labb
+
+stages:
+  - stage: build
+    displayName: Build
+    jobs:
+      - job: iac
+        displayName: Validate infrastructure
+        steps:
+          - task: AzureCLI@2
+            displayName: ${{ parameters.environment }}
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: pscore
+              scriptPath: main/deploy.ps1
+              arguments: ${{ parameters.environment }} validate
+
+  - stage: ${{ parameters.environment }}
+    displayName: Release (${{ parameters.environment }})
+    jobs:
+      - deployment: iac
+        displayName: Deploy infrastructure
+        environment: ${{ parameters.environment }}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: ${{ parameters.environment }}
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    scriptType: pscore
+                    scriptPath: main/deploy.ps1
+                    arguments: ${{ parameters.environment }} create
