@@ -1,0 +1,30 @@
+trigger: none
+
+pool:
+  vmImage: ubuntu-22.04
+
+parameters:
+  - name: subscriptions
+    type: object
+
+stages:
+    - ${{ each subscription in parameters.subscriptions }}:
+      - stage: release_${{ replace(subscription, '-', '_') }}
+        displayName: Create ${{ subscription }}
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        jobs:
+          - deployment: create
+            displayName: Create ${{ subscription }}
+            environment: prod
+            strategy:
+              runOnce:
+                deploy:
+                  steps:
+                    - checkout: self
+                    - task: AzureCLI@2
+                      displayName: Create deployment
+                      inputs:
+                        azureSubscription: sp-subconnect-01
+                        scriptType: pscore
+                        scriptPath: script/script01.ps1
+                        arguments: ${{ subscription }}
