@@ -17,6 +17,6 @@ Service principle needs following permissions:
 - Owner at tenant scope
 - Application Admin
 - Billing account contributor (in Billing subscriptions)
-
+- Project Collection Administrator in DevOps
 
 
