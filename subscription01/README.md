@@ -15,6 +15,7 @@ Service principle needs following permissions:
 - Owner at tenant scope
 - Application Admin
 - Billing account contributor (in Billing subscriptions) [LINK HERE](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/programmatically-create-subscription).
+- Project Collection Administrator in DevOps
 
 # Get billing information
 ```powershell
