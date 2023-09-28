@@ -1,6 +1,7 @@
 schedules:
-- cron: '*/1 * * * *'
-  displayName: Daily midnight build
+- cron: '* * * * *'
+  displayName: Every minute
+  always: true
   branches:
     include:
     - main
