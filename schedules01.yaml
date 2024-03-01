@@ -1,0 +1,45 @@
+trigger:
+  branches:
+    include:
+      - main
+  # paths:
+  #   include:
+  #     - ci/cd.yml
+  #     - iac
+
+pool:
+  #vmImage: ubuntu-22.04
+  name: vmmgmtX
+
+parameters:
+  - name: environments
+    type: object
+    default:
+      - dev
+
+schedules:
+  - cron: "10 13 * * *"
+    displayName: "automatiserad"
+    always: true
+    branches:
+      include:
+        - main
+
+stages:
+  - ${{ each environment in parameters.environments }}:
+      - stage: release_${{ environment }}
+        displayName: Release (${{ environment }})
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        jobs:
+          - deployment: create_${{ environment }}
+            displayName: Create (${{ environment }})
+            environment: ${{ environment }}
+            strategy:
+              runOnce:
+                deploy:
+                  steps:
+                    - script: echo "start"
+                    - ${{ if eq(variables['Build.CronSchedule.DisplayName'], 'automatiserad') }}:
+                      - script: echo "This is schedule"
+                    - ${{ else }}:
+                      - script: echo "This is push"
