@@ -20,7 +20,7 @@ pool:
   #name: vmmgmtprod01
 
 variables:
-  azureSubscription: sub-b3care-prod-01
+  azureSubscription: sub-prod-01
   environment: runbooks
   workingDirectory: runbooks
 
