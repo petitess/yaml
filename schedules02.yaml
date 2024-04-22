@@ -1,36 +1,56 @@
-schedules:
-- cron: '* * * * *'
-  displayName: Every minute
-  always: true
+trigger:
   branches:
     include:
-    - main
-    
-pr: none
-trigger: none
+      - main
+  paths:
+    include:
+      - ci/cd-afd.yml
+      - afd
 
-pool:
-  vmImage: ubuntu-22.04
-
-variables:
-  azureSubscription: 'sub-labb-01'
+schedules:
+  - cron: "15 5 * * *"
+    displayName: "automatiserad"
+    always: true
+    branches:
+      include:
+        - main
 
 parameters:
-  - name: environment
-    type: string
-    default: labb
+  - name: environments
+    type: object
+    default:
+      - stg
+      - prod
 
 stages:
-  - stage: build
-    displayName: Build
-    jobs:
-      - job: iac
-        displayName: Validate infrastructure
-        steps:
-          - task: AzureCLI@2
-            displayName: ${{ parameters.environment }}
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: pscore
-              scriptPath: main/deploy.ps1
-              arguments: ${{ parameters.environment }} validate
+  - ${{ each environment in parameters.environments }}:
+      - stage: release_${{ environment }}
+        displayName: Release afd(${{ environment }})
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+        variables:
+          - name: pool
+            ? ${{ if eq(variables['Build.CronSchedule.DisplayName'], 'automatiserad') }}
+            : value: vmss-infra-devops-${{ environment }}-we-01
+            ${{ else }}:
+              value: vmmgmtX
+        pool:
+          name: ${{variables.pool}}
+        jobs:
+          - deployment: create_${{ environment }}
+            displayName: Create afd (${{ environment }})
+            ? ${{ if eq(variables['Build.CronSchedule.DisplayName'], 'automatiserad') }}
+            : environment: schedule
+            ${{ else }}:
+              environment: ${{ environment }}
+            strategy:
+              runOnce:
+                deploy:
+                  steps:
+                    - checkout: self
+                    - task: AzureCLI@2
+                      displayName: Create deployment afd
+                      inputs:
+                        azureSubscription: sp-infra-${{ environment }}-01
+                        scriptType: pscore
+                        scriptPath: afd/deploy.ps1
+                        arguments: ${{ environment }} create
