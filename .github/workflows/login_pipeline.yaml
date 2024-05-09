@@ -16,7 +16,7 @@ permissions:
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
-        environment: 'dev'
+#        environment: 'dev'
         strategy: 
             fail-fast: false
             matrix:
