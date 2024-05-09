@@ -17,11 +17,11 @@ jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
         environment: 'dev'
-        strategy: 
-            fail-fast: false
-            matrix:
-                environment:
-                    - dev
+#        strategy: 
+#            fail-fast: false
+#            matrix:
+#                environment:
+#                    - dev
         steps:
          - name: 'INFO'
            run: | 
