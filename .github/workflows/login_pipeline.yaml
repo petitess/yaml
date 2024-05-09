@@ -35,9 +35,8 @@ jobs:
         #       az account show
         #       az group list
 
-        - name: 'CLIENT'
-          run: echo ${{ env.ARM_CLIENT_ID }}
-        - name: 'SUB'
-          run: echo ${{ env.ARM_SUBSCRIPTION_ID }}
-        - name: 'TEN'
-          run: echo ${{ env.ARM_TENANT_ID }}
+        - name: 'INFO'
+          run: | 
+              echo ${{ env.ARM_CLIENT_ID }}
+              echo ${{ env.ARM_SUBSCRIPTION_ID }}
+              echo ${{ env.ARM_TENANT_ID }}
