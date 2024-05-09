@@ -17,11 +17,11 @@ jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
         environment: 'dev'
-#        strategy: 
-#            fail-fast: false
-#            matrix:
-#                environment:
-#                    - dev
+        strategy: 
+            fail-fast: false
+            matrix:
+                environment:
+                    - dev
         steps:
          - name: 'INFO'
            run: | 
@@ -32,9 +32,9 @@ jobs:
          - name: 'Az CLI login'
            uses: azure/login@v2
            with:
-             client-id: '4f689dd1-935e-453c-a5d2-4d3b9a3a5c76'  ##'${{ env.ARM_CLIENT_ID }}'
-             subscription-id: '0dcc13b7-1a10-483e-95aa-fe7e71802e2e' #'${{ env.ARM_SUBSCRIPTION_ID }}'
-             tenant-id: '7d5e28a9-aa48-43c6-a39a-3fc5167644de' #'${{ env.ARM_TENANT_ID }}'
+             client-id: '${{ env.ARM_CLIENT_ID }}'
+             subscription-id: '${{ env.ARM_SUBSCRIPTION_ID }}'
+             tenant-id: '${{ env.ARM_TENANT_ID }}'
       
 #         - name: 'Run az commands'
 #           run: |
