@@ -30,7 +30,7 @@ jobs:
                 echo ARM_TENANT_ID: ${{ env.ARM_TENANT_ID }}
                 
          - name: 'Az CLI login'
-           uses: azure/login@v2
+           uses: azure/login@v1
            with:
              client-id: '4f689dd1-935e-453c-a5d2-4d3b9a3a5c76'  ##'${{ env.ARM_CLIENT_ID }}'
              subscription-id: '0dcc13b7-1a10-483e-95aa-fe7e71802e2e' #'${{ env.ARM_SUBSCRIPTION_ID }}'
