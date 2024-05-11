@@ -30,14 +30,9 @@ jobs:
               - dev
               #- utv
 
-    defaults:
-      run:
-        shell: pwsh
-        working-directory: ${{github.workspace}}/frontddor01
-
     steps:
     - name: Checkout
-      uses: actions/checkout@main
+      uses: actions/checkout@v3
       
     # - uses: actions/setup-node@v3
     #   with:
@@ -50,18 +45,34 @@ jobs:
          subscription-id: '${{ env.ARM_SUBSCRIPTION_ID }}'
          tenant-id: '${{ env.ARM_TENANT_ID }}'
 
-    - name: Bicep pwsh
+    - name: Bicep what-if
       uses: azure/powershell@v2
       with:
         inlineScript: ./frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
         azPSVersion: "latest"
 
-#    - name: Bicep What-if
- #     uses: azure/cli@v2
-  #    with:
-   #     inlineScript: |
-    #      ls
-     #     chmod +x frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
-          
+  bicep_release:
+    name: 'Bicep Release'
+    runs-on: ubuntu-latest
+    strategy: 
+      fail-fast: false
+      matrix:
+          environment:
+              - dev
+              
+    environment: ${{ matrix.environment }}
+    needs: [bicep_whatif]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'schedule'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
 
-
+    - name: Bicep release
+      uses: azure/powershell@v2
+      with:
+        inlineScript: ./frontdoor01/deploy.ps1 ${{ matrix.environment }} create
+        azPSVersion: "latest"
+      
+    
+    
