@@ -51,10 +51,10 @@ jobs:
          tenant-id: '${{ env.ARM_TENANT_ID }}'
 
     - name: Bicep What-if
-      uses: Azure/cli@v2.0.0
+      uses: azure/cli@v2
       with:
-        # Specify the script here
-        inlineScript: chmod +x ./frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
+        inlineScript: |
+          chmod +x frontddor01/deploy.ps1 ${{ matrix.environment }} what-if
           
 
 
