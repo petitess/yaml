@@ -50,12 +50,18 @@ jobs:
          subscription-id: '${{ env.ARM_SUBSCRIPTION_ID }}'
          tenant-id: '${{ env.ARM_TENANT_ID }}'
 
-    - name: Bicep What-if
-      uses: azure/cli@v2
+    - name: Bicep pwsh
+      uses: azure/powershell@v2
       with:
-        inlineScript: |
-          ls
-          chmod +x frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
+        inlineScript: ./frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
+        azPSVersion: "latest"
+
+#    - name: Bicep What-if
+ #     uses: azure/cli@v2
+  #    with:
+   #     inlineScript: |
+    #      ls
+     #     chmod +x frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
           
 
 
