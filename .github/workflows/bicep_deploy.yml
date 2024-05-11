@@ -54,8 +54,8 @@ jobs:
       uses: Azure/cli@v2.0.0
       with:
         # Specify the script here
-        inlineScript: |
-            ./frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
+        
+        scriptPath: ./frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
           
 
 
