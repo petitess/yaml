@@ -54,7 +54,7 @@ jobs:
       with:
         # Specify the script here
         inlineScript: |
-            .delpoy.ps1 ${{ matrix.environment }} what-if
+            .deploy.ps1 ${{ matrix.environment }} what-if
           
 
 
