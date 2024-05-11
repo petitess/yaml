@@ -2,8 +2,6 @@ name: 'Bicep Deploy'
 
 on:
   workflow_dispatch:
-  schedule:
-      - cron: '55 13 * * *'
 
 env:
   ARM_CLIENT_ID: ${{ vars.CLIENT_ID }}  
