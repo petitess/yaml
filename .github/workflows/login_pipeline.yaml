@@ -37,5 +37,10 @@ jobs:
              tenant-id: '${{ env.ARM_TENANT_ID }}'
       
          - name: 'Run az commands'
+           shell: pwsh   
            run: |
                az account show
+         - name: 'Deploy Bbvei'
+           shell: pwsh   
+           run: |
+               .deploy.ps1 dev
