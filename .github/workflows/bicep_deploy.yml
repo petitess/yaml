@@ -54,7 +54,8 @@ jobs:
       uses: azure/cli@v2
       with:
         inlineScript: |
-          chmod +x frontddor01/deploy.ps1 ${{ matrix.environment }} what-if
+          ls
+      # chmod +x frontddor01/deploy.ps1 ${{ matrix.environment }} what-if
           
 
 
