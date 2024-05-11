@@ -54,7 +54,8 @@ jobs:
       uses: Azure/cli@v2.0.0
       with:
         # Specify the script here
-        
+        scriptType: pscore
+        scriptLocation: 'scriptPath'
         scriptPath: ./frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
           
 
