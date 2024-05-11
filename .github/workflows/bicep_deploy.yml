@@ -55,7 +55,7 @@ jobs:
       with:
         inlineScript: |
           ls
-      # chmod +x frontddor01/deploy.ps1 ${{ matrix.environment }} what-if
+          chmod +x frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
           
 
 
