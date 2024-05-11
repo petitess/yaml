@@ -54,7 +54,7 @@ jobs:
       with:
         # Specify the script here
         inlineScript: |
-            ./frontdoot/deploy.ps1 ${{ matrix.environment }} what-if
+            ./frontdoor01/deploy.ps1 ${{ matrix.environment }} what-if
           
 
 
