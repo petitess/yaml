@@ -47,7 +47,7 @@ jobs:
     - name: Run script
       uses: azure/powershell@v2
       with:
-        inlineScript: ./github-backup-01/github-backup-01.ps1 ${{ secrets.GITHUB_TOKEN }}
+        inlineScript: ./github-backup-01/github-backup.ps1 ${{ secrets.GITHUB_TOKEN }}
         azPSVersion: "latest"
 
   # bicep_release:
