@@ -6,10 +6,10 @@ on:
      - cron:  '0 3 * * *'
 
 env:
-  ARM_CLIENT_ID: ${{ vars.CLIENT_ID }}  
+  ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}  
   ARM_USE_OIDC: true
-  ARM_SUBSCRIPTION_ID: ${{ vars.SUBSCRIPTION_ID }} 
-  ARM_TENANT_ID: ${{ vars.TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }} 
+  ARM_TENANT_ID: ${{ secrets.TENANT_ID }}
 
 permissions:
   contents: write
@@ -36,18 +36,19 @@ jobs:
     - name: 'INFO'
       run: | 
           echo TOKEN : ${{ secrets.GITHUB_TOKEN }}
-    # - name: 'Az CLI login'
-    #   uses: azure/login@v2
-    #   with:
-    #      client-id: '${{ env.ARM_CLIENT_ID }}'
-    #      subscription-id: '${{ env.ARM_SUBSCRIPTION_ID }}'
-    #      tenant-id: '${{ env.ARM_TENANT_ID }}'
 
-    # - name: Bicep what-if
-    #   uses: azure/powershell@v2
-    #   with:
-    #     inlineScript: ./github-backup-01/deploy.ps1
-    #     azPSVersion: "latest"
+    - name: 'Az CLI login'
+      uses: azure/login@v2
+      with:
+         client-id: '${{ env.ARM_CLIENT_ID }}'
+         subscription-id: '${{ env.ARM_SUBSCRIPTION_ID }}'
+         tenant-id: '${{ env.ARM_TENANT_ID }}'
+
+    - name: Run script
+      uses: azure/powershell@v2
+      with:
+        inlineScript: ./github-backup-01/github-backup-01.ps1 ${{ secrets.GITHUB_TOKEN }}
+        azPSVersion: "latest"
 
   # bicep_release:
   #   name: 'Bicep Release'
