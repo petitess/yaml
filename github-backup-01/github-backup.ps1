@@ -19,3 +19,16 @@ $headers = @{
 }
 $I = (Invoke-RestMethod -Method GET -URI $URL -Headers $headers) | ConvertTo-Json
 $I
+
+
+if ($false) {
+
+    $URL = "https://api.github.com/repos/petitess/bicep/zipball/main"
+    $headers = @{
+        ##"Authorization"        = "Bearer $GITHUB_TOKEN"
+        "X-GitHub-Api-Version" = "2022-11-28"
+        "Accept"               = "application/vnd.github+json"
+    }
+    (Invoke-RestMethod -Method GET -URI $URL -Headers $headers) | ConvertTo-Json
+    $I
+}
