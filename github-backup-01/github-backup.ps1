@@ -27,8 +27,21 @@ if ($false) {
     $headers = @{
         ##"Authorization"        = "Bearer $GITHUB_TOKEN"
         "X-GitHub-Api-Version" = "2022-11-28"
-        "Accept"               = "application/vnd.github+json"
+        "Accept"               = "application/vnd.github.v3.raw"
     }
-    (Invoke-RestMethod -Method GET -URI $URL -Headers $headers) | ConvertTo-Json
-    $I
+
+
+    $I = (Invoke-RestMethod -Method GET -URI $URL -Headers $headers) 
+    $I > file.zip
 }
+
+
+wget --header="Accept:application/vnd.github.v3.raw" -O - "https://api.github.com/repos/petitess/bicep/zipball/main" | tar xz
+
+
+get-command *archive*
+
+invoke
+
+
+Invoke-WebRequest -uri "https://api.github.com/repos/petitess/bicep/zipball/main" -Method "GET"  -Outfile (-join("fdfd",".zip"))  
