@@ -2,8 +2,8 @@ name: 'Github Backup'
 
 on:
   workflow_dispatch:
-   schedule:
-     - cron:  '0 3 * * *'
+  #  schedule:
+  #    - cron:  '0 3 * * *'
 
 env:
   ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}  
