@@ -1,0 +1,72 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - github-backup
+
+variables:
+  - group: github-backup
+
+  - name: pool
+    value: ubuntu-latest
+
+  - name: time
+    value: $(Get-Date -Format "yyyy-MM-dd") #$(date +'%Y-%m-%d')
+
+pool:
+ vmImage: $(pool)
+ #name: $(pool)
+
+schedules:
+- cron: '0 4 * * *'
+  displayName: "automatiserad körning"
+  always: true
+  branches:
+    include:
+      - main
+
+steps:
+  - checkout: self
+
+  - task: AzureCLI@2
+    displayName: Get repos
+    inputs:
+      azureSubscription: $(serviceprincipal)
+      scriptType: pscore
+      scriptPath: github-backup/github-backup.ps1
+
+  - task: PowerShell@2
+    name: date
+    displayName: Date
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host $(time)
+
+  - task: PowerShell@2
+    name: variables
+    displayName: Set environment variables
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "##vso[task.setvariable variable=AZCOPY_SPA_CLIENT_SECRET]$(sp-github-backup-01-secret)"    
+
+  - task: AzureCLI@2
+    displayName: AZCopy Login
+    inputs:
+      azureSubscription: $(serviceprincipal)
+      scriptType: pscore
+      scriptLocation: inlineScript
+      addSpnToEnvironment: true
+      inlineScript: |
+        azcopy login --service-principal --application-id $(sp-github-backup-01-client-id) --tenant-id $(tenant-id)
+
+  - task: PowerShell@2
+    name: copy
+    displayName: AzCopy
+    inputs:
+      targetType: 'inline'
+      script: |
+        azcopy copy '$(Build.SourcesDirectory)/repos/*' "https://stgithub.blob.core.windows.net/github-backup/$(time)" --recursive=true --block-blob-tier "Cool"
