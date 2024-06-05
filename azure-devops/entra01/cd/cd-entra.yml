@@ -1,0 +1,97 @@
+trigger: none
+
+pool:
+  vmImage: ubuntu-22.04
+  name: vmmgmtX
+
+schedules:
+  - cron: "16 9 * * *"
+    displayName: "automatiserad1"
+    always: true
+    branches:
+      include:
+        - main
+  - cron: "17 9 * * *"
+    displayName: "automatiserad2"
+    always: true
+    branches:
+      include:
+        - main
+
+  - cron: "18 9 * * *"
+    displayName: "automatiserad3"
+    always: true
+    branches:
+      include:
+        - main
+
+parameters:
+  - name: group
+    type: string
+    displayName: Entra Id Group
+    default: PIM-ApplicationAdministrator
+    values:
+      - PIM-GlobalAdministrator
+      - PIM-ApplicationAdministrator
+      - PIM-PIMAdministrator
+
+  - name: addorremove
+    type: string
+    displayName: Add or Remove
+    default: remove
+    values:
+      - remove
+      - add
+
+  - name: objectid
+    type: string
+    displayName: Object Id
+    default: "e9df8e15-8567-4fa3-a0b0-9fa7f43c3c64"
+
+variables:
+  - name: group
+    ${{ if eq(variables['Build.CronSchedule.DisplayName'], 'automatiserad1') }}:
+      value: PIM-GlobalAdministrator
+    ${{ elseif eq(variables['Build.CronSchedule.DisplayName'], 'automatiserad2') }}:
+      value: PIM-ApplicationAdministrator
+    ${{ elseif eq(variables['Build.CronSchedule.DisplayName'], 'automatiserad3') }}:
+      value: PIM-PIMAdministrator
+
+stages:
+  - stage: release
+    displayName: Entra
+    jobs:
+      - deployment: entra
+        condition: ne(variables['Build.Reason'], 'Schedule')
+        displayName: Entra
+        environment: tenant
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: AzureCLI@2
+                  displayName: Entra Id Job
+                  inputs:
+                    azureSubscription: sp-governance-01 # Needs to be Privileged Role Administrator
+                    scriptType: pscore
+                    scriptPath: script/script-entra.ps1
+                    arguments: ${{ parameters.group }} ${{ parameters.addorremove }} ${{ parameters.objectid }}
+
+      - deployment: entra_remove
+        condition: eq(variables['Build.Reason'], 'Schedule')
+        displayName: Entra Remove
+        environment: tenant
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - ${{ each group in parameters.environments }}:
+                  - checkout: self
+                  - task: AzureCLI@2
+                    displayName: Entra Id Job
+                    inputs:
+                      azureSubscription: sp-governance-01 # Needs to be Privileged Role Administrator
+                      scriptType: pscore
+                      scriptPath: script/script-entra.ps1
+                      arguments: ${{ variables.group }} ${{ parameters.addorremove }} ${{ parameters.objectid }}
