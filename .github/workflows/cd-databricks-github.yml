@@ -48,13 +48,13 @@ jobs:
     #   with:
     #     terraform_version: ~1.8.0
 
-    - name: Terraform Init
-      run: |
-        terraform init                                                                         \
-        -backend-config="storage_account_name=${{ env.TFSTATE_STORAGE }}"        
+    # - name: Terraform Init
+    #   run: |
+    #     terraform init                                                                         \
+    #     -backend-config="storage_account_name=${{ env.TFSTATE_STORAGE }}"        
         
-    - name: Terraform Validate
-      run: terraform validate
+    # - name: Terraform Validate
+    #   run: terraform validate
       
     - name: Terraform Plan
       id: tf_plan
