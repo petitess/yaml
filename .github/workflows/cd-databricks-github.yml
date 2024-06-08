@@ -67,13 +67,17 @@ jobs:
     # - name: Terraform Validate
     #   run: terraform validate
 
-    - name: Permission
-      id: permission
-      run: 'git update-index --chmod=+x ./init-plan.ps1'
+    # - name: Permission
+    #   id: permission
+    #   run: 'git update-index --chmod=+x ./init-plan.ps1'
       
-    - name: Terraform Plan
-      id: tf_plan
-      run: 'sudo ./init-plan.ps1'
+    # - name: Terraform Plan
+    #   id: tf_plan
+    #   run: './init-plan.ps1'
+    - name: Plan
+      shell: pwsh
+      run: |
+        .\init-plan.ps1
 
   # terraform_apply:
   #   name: 'Terraform Apply'
