@@ -17,20 +17,20 @@ output "dbw" {
   value = data.azurerm_databricks_workspace.dbw.workspace_url
 }
 
-# resource "databricks_secret_scope" "kv" {
-#   name = "keyvault"
+resource "databricks_secret_scope" "kv" {
+  name = "keyvault"
 
-#   keyvault_metadata {
-#     resource_id = data.azurerm_key_vault.kv.id
-#     dns_name    = data.azurerm_key_vault.kv.vault_uri
-#   }
-# }
+  keyvault_metadata {
+    resource_id = data.azurerm_key_vault.kv.id
+    dns_name    = data.azurerm_key_vault.kv.vault_uri
+  }
+}
 
-# resource "databricks_workspace_file" "init" {
-#   for_each = fileset("init_scripts", "/*.sh")
-#   path     = "/terraform/${each.value}"
-#   source   = "${path.module}/init_scripts/${each.value}"
-# }
+resource "databricks_workspace_file" "init" {
+  for_each = fileset("init_scripts", "/*.sh")
+  path     = "/terraform/${each.value}"
+  source   = "${path.module}/init_scripts/${each.value}"
+}
 
 resource "databricks_notebook" "notebook" {
   content_base64 = base64encode(<<-EOT
