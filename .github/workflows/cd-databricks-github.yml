@@ -51,46 +51,34 @@ jobs:
       run: |
         .\init-plan.ps1 ${{ matrix.environment }}
 
-  # terraform_apply:
-  #   name: 'Terraform Apply'
-  #   runs-on: ubuntu-latest
-  #   strategy: 
-  #     fail-fast: false
-  #     matrix:
-  #         environment:
-  #             - dev
-  #   environment: ${{ matrix.environment }}
-  #   needs: [terraform_build_and_plan]
-  #   if: github.ref == 'refs/heads/main' && github.event_name != 'schedule'
+  terraform_apply:
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+    strategy: 
+      fail-fast: false
+      matrix:
+          environment:
+              - dev
+    environment: ${{ matrix.environment }}
+    needs: [terraform_build_and_plan]
 
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #       working-directory: ${{github.workspace}}/terraform
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{github.workspace}}/databricks
 
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v3
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
       
-  #   # - uses: actions/setup-node@v3
-  #   #   with:
-  #   #     node-version: '16'
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{env.ARM_CLIENT_ID}}
+        tenant-id: ${{env.ARM_TENANT_ID}}
+        subscription-id: ${{env.ARM_SUBSCRIPTION_ID}}
     
-  #   - name: Setup Terraform
-  #     uses: hashicorp/setup-terraform@v2
-  #     with:
-  #       terraform_version: ~1.8.0
-    
-  #   - name: Terraform Init
-  #     run: |
-  #       terraform init \
-  #         -backend-config="storage_account_name=${{ env.TFSTATE_STORAGE }}"
-    
-  #   - name: Terraform Apply
-  #     run: |
-  #       terraform apply -parallelism=100 \
-  #         -var='client_id=${{env.ARM_CLIENT_ID}}' \
-  #         -var='tenant_id=${{env.ARM_TENANT_ID}}' \
-  #         -var='sub_id=${{env.ARM_SUBSCRIPTION_ID}}' \
-  #         -var='env=${{matrix.environment}}' \
-  #         -auto-approve
+    - name: Plan
+      shell: pwsh
+      run: |
+        .\init-apply.ps1 ${{ matrix.environment }}
