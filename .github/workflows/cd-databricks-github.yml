@@ -2,16 +2,16 @@ name: 'Databricks'
 
 on:
   workflow_dispatch:
-  push:
+  #push:
   # schedule:
   #   - cron:  '0 3 * * *'
 
 env:
-  ARM_CLIENT_ID: '531e811a-bf3f-486b-99a2-3eab3f268e54' ## ${{ vars.CLIENT_ID }}  
+  ARM_CLIENT_ID:  ${{ vars.CLIENT_ID }}  
   ARM_USE_OIDC: true
-  ARM_SUBSCRIPTION_ID: '0dcc13b7-1a10-483e-95aa-fe7e71802e2e' # ${{ vars.SUBSCRIPTION_ID }} 
-  ARM_TENANT_ID: '7d5e28a9-aa48-43c6-a39a-3fc5167644de' # ${{ vars.TENANT_ID }}
-  TFSTATE_STORAGE : 'stabcdefault01' # ${{ vars.TFSTATE_STORAGE }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.SUBSCRIPTION_ID }} 
+  ARM_TENANT_ID: ${{ vars.TENANT_ID }}
+  TFSTATE_STORAGE: ${{ vars.TFSTATE_STORAGE }}
 
 permissions:
   contents: write
