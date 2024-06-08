@@ -3,7 +3,7 @@
 USERNAME=${PYPI_USER}
 PASSWORD=${PYPI_PW}
 
-#curl -um7217401:cmVmdGtuOjAxOjE3NDYwMDMxMDA6eDc1N1dzRHZ6RFc2YllmYk1jN0QyUFdvZFk0 -L -O https://artifacts.comp.com/artifactory/sgds-055-analytics-dw/odbc/msodbcsql17_17.10.#1.1-1_amd64.deb
+#curl -um7217401:cmVmdGtuOjAxOjE3ND -L -O https://artifacts.comp.com/artifactory/sgds-055-analytics-dw/odbc/msodbcsql17_17.10.#1.1-1_amd64.deb
 #sudo ACCEPT_EULA=Y apt-get -q -y install ./msodbcsql17_17.10.1.1-1_amd64.deb
 
 curl -u${USERNAME}:${PASSWORD} -L -O https://artifacts.comp.com/artifactory/comp/odbc/msodbcsql17_17.10.1.1-1_amd64.deb
