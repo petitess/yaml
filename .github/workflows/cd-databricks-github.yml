@@ -19,6 +19,15 @@ permissions:
   id-token: write  
   actions: write
   deployments: write
+  attestations: write
+  checks: write
+  discussions: write
+  issues: write
+  packages: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write
 
 jobs:
   terraform_build_and_plan:
