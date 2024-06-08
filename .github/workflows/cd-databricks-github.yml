@@ -55,6 +55,10 @@ jobs:
         
     # - name: Terraform Validate
     #   run: terraform validate
+
+    - name: Permission
+      id: permission
+      run: 'git update-index --chmod=+x ./init-plan.ps1'
       
     - name: Terraform Plan
       id: tf_plan
