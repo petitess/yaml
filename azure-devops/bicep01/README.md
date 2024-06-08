@@ -2,8 +2,6 @@
 This repository contains *Infrastructure-as-Code (IaC)* templates that declaratively define Azure infrastructure.  
 The templates are written in [Bicep](https://github.com/Azure/bicep) and can be deployed either manually or in a CI/CD pipeline.
 
-<br>
-
 # Getting Started
 
 ## Prerequisites
