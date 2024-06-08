@@ -1,0 +1,69 @@
+trigger: none
+
+pool:
+  vmImage: ubuntu-22.04
+  name: vmmgmtX
+
+parameters:
+  - name: subscriptions
+    type: object
+    displayName: A list of subscriptions (- sub-infra-dev-01) (not required, leave default value to not create subscriptions)
+    default:
+      - "dont-create-subscriptions"
+
+  - name: devopsProjectName
+    type: string
+    displayName: DevOps Project Name (ABC, Industriportalen, Infrastruktur)
+    default: ABC
+
+  - name: mgName
+    type: string
+    displayName: Managment Group Id
+    default: mg-landingzones-01
+
+  - name: teamGroups
+    type: object
+    displayName: A list of team groups (- grp-amazing-reader) (not required, leave default value to not create entra id groups)
+    default:
+      - "dont-create-groups"
+
+stages:
+  - stage: release
+    displayName: Create subscriptions
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - ${{ each subscription in parameters.subscriptions }}:
+        - ${{ if ne(subscription, 'dont-create-subscriptions') }}:
+            - deployment: create_${{ replace(subscription, '-', '_') }}
+              displayName: Create ${{ subscription }}
+              environment: tenant
+              strategy:
+                runOnce:
+                  deploy:
+                    steps:
+                      - checkout: self
+                      - task: AzureCLI@2
+                        displayName: Create deployment
+                        inputs:
+                          azureSubscription: sp-subscriptions-01
+                          scriptType: pscore
+                          scriptPath: script/script01.ps1
+                          arguments: ${{ subscription }} ${{ parameters.devopsProjectName }} ${{ parameters.mgName }}
+
+      - ${{ each group in parameters.teamGroups }}:
+        - ${{ if ne(group, 'dont-create-groups') }}:
+            - deployment: create_${{ replace(group, '-', '_') }}
+              displayName: Create ${{ group }}
+              environment: tenant
+              strategy:
+                runOnce:
+                  deploy:
+                    steps:
+                      - checkout: self
+                      - task: AzureCLI@2
+                        displayName: Create group
+                        inputs:
+                          azureSubscription: sp-subscriptions-01
+                          scriptType: pscore
+                          scriptPath: script/script02.ps1
+                          arguments: ${{ group }}
