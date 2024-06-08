@@ -77,7 +77,7 @@ jobs:
     - name: Plan
       shell: pwsh
       run: |
-        .\init-plan.ps1
+        .\init-plan.ps1 ${{ matrix.environment }}
 
   # terraform_apply:
   #   name: 'Terraform Apply'
