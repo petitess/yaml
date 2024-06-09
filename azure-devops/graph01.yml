@@ -1,0 +1,61 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - graph
+
+variables:
+  - name: azureSubscription
+    value: sp-subconnect-01
+
+  - name: pool
+    value: ubuntu-latest
+
+  - name: time
+    value: $(Get-Date -Format "yyyy-MM-dd") 
+
+pool:
+ vmImage: $(pool)
+
+steps:
+  - checkout: self
+
+  - task: AzurePowerShell@5
+    displayName: "Microsoft Graph Token for Workload Federated Credential"
+    inputs:
+      azureSubscription: $(azureSubscription)
+      azurePowerShellVersion: "LatestVersion"
+      ScriptType: "InlineScript"
+      Inline: | 
+        $accessToken = (Get-AzAccessToken -ResourceTypeName MSGraph -ErrorAction Stop).Token
+        Write-Host "##vso[task.setvariable variable=accessToken;issecret=true]$accessToken"
+        $secureToken = ConvertTo-SecureString -String $($accessToken) -AsPlainText -Force
+        Connect-MgGraph -AccessToken $secureToken -NoWelcome
+
+        $User = '94446061-65d1-4fb3-bcb9-7ba91c64e58d'
+        $GrpName = 'grp-graph-01'
+
+        if (!(Get-MgGroup -Filter "DisplayName eq '$GrpName'")) {
+            Write-Output "Creating $GrpName"
+            $GrpId = (New-MgGroup -DisplayName $GrpName -MailNickName $GrpName -MailEnabled:$False -SecurityEnabled).Id
+            New-MgGroupMember -GroupId $GrpId -DirectoryObjectId $User
+        }
+        else {
+            Write-Output "$GrpName already exists"
+            $GrpId = (Get-MgGroup -Filter "DisplayName eq '$GrpName'").Id
+
+            if ($GrpId.Count -gt 1) {
+                Write-Output "More than 1 group with this name exists"
+            }
+            else {
+                if (!(Get-MgGroupMember -GroupId $GrpId -Filter "Id eq '$User'")) {
+                    Write-Output "Adding member to $GrpName"
+                    New-MgGroupMember -GroupId $GrpId -DirectoryObjectId $User
+                }
+                else {
+                    Write-Output "Member already added to $GrpName"
+                }
+            }
+        }
