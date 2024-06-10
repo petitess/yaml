@@ -1,0 +1,61 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - github-backup-mid
+
+variables:
+  - name: pool
+    value: ubuntu-latest
+
+  - name: sp
+    value: "sp-subconnect-01"
+
+  - name: time
+    value: $(Get-Date -Format "yyyy-MM-dd")
+
+  - name: AZCOPY_AUTO_LOGIN_TYPE
+    value: PSCRED
+
+  - name: AZCOPY_MSI_CLIENT_ID
+    value: "xxx-4614-afce-aaf438112dce"
+
+  - name: AZCOPY_TENANT_ID
+    value: "xxx-a8e6-0ab2841227c8"
+
+pool:
+  vmImage: $(pool)
+
+steps:
+  - checkout: self
+
+  - task: PowerShell@2
+    displayName: "Get repos"
+    inputs:
+      targetType: "inline"
+      script: |
+        $Repos = @(
+        'powershell',
+        'terraform-azure',
+        'bicep',
+        'azcli',
+        'yaml'
+        )
+        New-Item -Name "repos" -ItemType Directory
+        $Repos | ForEach-Object {
+            Invoke-WebRequest -uri "https://api.github.com/repos/petitess/$_/zipball/main" -Method "GET"  -Outfile ( -join ("repos/$_", ".zip"))  
+        }
+        Write-Output $(Get-ChildItem -Path "repos").Name
+
+  - task: AzurePowerShell@5
+    displayName: "AzCopy"
+    inputs:
+      azureSubscription: $(sp)
+      azurePowerShellVersion: "LatestVersion"
+      ScriptType: "InlineScript"
+      Inline: |
+        Write-Host "1: $($env:AZCOPY_AUTO_LOGIN_TYPE)"
+        Write-Host "2: $($env:AZCOPY_MSI_CLIENT_ID)"
+        azcopy copy '$(Build.SourcesDirectory)/repos/*' "https://stgithubprod01.blob.core.windows.net/github-backup/$(time)" --recursive=true --block-blob-tier "Cool"
