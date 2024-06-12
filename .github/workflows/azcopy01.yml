@@ -33,9 +33,9 @@ jobs:
                 echo AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
                 echo AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
 
-         - name: 'INFO'
-           run: |
-                gci env:* | sort-object name  
+        #  - name: 'INFO'
+        #    run: |
+        #         gci env:* | sort-object name  
 
          - name: 'Az CLI login'
            uses: azure/login@v2
