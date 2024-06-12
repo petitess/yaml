@@ -40,17 +40,22 @@ jobs:
 
       - name: "LS"
         run: |
-          ls ..
+          touch my-file.txt
+          ls
 
-      - name: Azure PowerShell script
-        uses: azure/powershell@v2
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            Get-AzContext
-            $Date = $(Get-Date -Format "yyyy-MM-dd")
-            New-Item -ItemType File -Name 'my-file.txt' -Value "Hej $(Get-Date -Format "yyyy-MM-dd-HH-mm")"
-            azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/$Date/my-file.txt
+      - name: "Set env var"
+        run: |
+          echo "MY_DATE=$(date +'%Y-%m-%d')" >> GITHUB_ENV
+
+      # - name: Azure PowerShell script
+      #   uses: azure/powershell@v2
+      #   with:
+      #     azPSVersion: "latest"
+      #     inlineScript: |
+      #       Get-AzContext
+      #       $Date = $(Get-Date -Format "yyyy-MM-dd")
+      #       New-Item -ItemType File -Name 'my-file.txt' -Value "Hej $(Get-Date -Format "yyyy-MM-dd-HH-mm")"
+      #       azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/$Date/my-file.txt
 
       - name: Show env vars
         uses: azure/powershell@v2
@@ -58,3 +63,10 @@ jobs:
           azPSVersion: "latest"
           inlineScript: |
             Get-ChildItem Env:
+
+      - name: Azure CLI script
+        uses: azure/cli@v2
+        with:
+           azcliversion: latest
+           inlineScript: |
+             azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/${{ vars.MY_DATE }}/my-github-file.txt
