@@ -49,6 +49,7 @@ jobs:
            shell: pwsh   
            run: |
                az account show
+               azcopy list https://stgithubprod01.blob.core.windows.net/github-backup/2024-06-10
 
         #  - name: Azure PowerShell script
         #    uses: azure/powershell@v2
