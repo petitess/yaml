@@ -63,7 +63,7 @@ jobs:
 
       - name: "AzCopy"
         run: |
-          azcopy login --login-type=SPN
+          azcopy login --login-type=AZCLI
           azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/${{ vars.MY_DATE }}/my-github-file.txt
 
       # - name: Azure CLI script
