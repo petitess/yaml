@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
 
 env:
-  ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}  
-  ARM_USE_OIDC: true
-  ARM_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }} 
-  ARM_TENANT_ID: ${{ secrets.TENANT_ID }}
-  # AZURE_CLIENT_ID: the service principal client ID or user-assigned managed identity client ID
-  # AZURE_SUBSCRIPTION_ID: the subscription ID
-  # AZURE_TENANT_ID: 
+  # ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}  
+  # ARM_USE_OIDC: true
+  # ARM_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }} 
+  # ARM_TENANT_ID: ${{ secrets.TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }} 
+  AZURE_TENANT_ID: ${{ secrets.TENANT_ID }}
 
 permissions:
     id-token: write
@@ -45,9 +45,9 @@ jobs:
            run: |
                az account show
 
-         - name: Azure PowerShell script
-           uses: azure/powershell@v2
-           with:
-              azPSVersion: "latest"
-              inlineScript: |
-                Get-AzContext
+        #  - name: Azure PowerShell script
+        #    uses: azure/powershell@v2
+        #    with:
+        #       azPSVersion: "latest"
+        #       inlineScript: |
+        #         Get-AzContext
