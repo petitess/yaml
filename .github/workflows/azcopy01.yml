@@ -33,10 +33,6 @@ jobs:
           echo AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
           echo AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
 
-      #  - name: 'INFO'
-      #    run: |
-      #         gci env:* | sort-object name
-
       - name: "Az CLI login"
         uses: azure/login@v2
         with:
@@ -56,8 +52,8 @@ jobs:
           inlineScript: |
             Get-AzContext
             $Date = (Get-Date -Format "yyyy-MM-dd")
-            New-Item -ItemType File -Name 'my-file.txt'
-            azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/$Date
+            New-Item -ItemType File -Name 'my-file.txt' -Value "Hej"
+            azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/$Date/my-file.txt
 
       - name: Show env vars
         uses: azure/powershell@v2
