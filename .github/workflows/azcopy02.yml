@@ -48,12 +48,12 @@ jobs:
       - name: "Set variable"
         run: |
           echo "MY_DATE=$(date +'%Y-%m-%d')" >> GITHUB_ENV
-          echo $MY_DATE
+          echo ${{ env.MY_DATE }}
 
       - name: "AzCopy"
         run: |
-          echo $MY_DATE
-          azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/$MY_DATE/my-github-file.txt
+          echo ${{ env.MY_DATE }}
+          azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/${{ env.MY_DATE }}/my-github-file.txt
 
       - name: Show env vars
         uses: azure/powershell@v2
