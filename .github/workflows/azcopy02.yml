@@ -11,10 +11,6 @@ env:
   AZCOPY_AUTO_LOGIN_TYPE: AZCLI
   AZCOPY_SPA_APPLICATION_ID: ${{ vars.AZURE_CLIENT_ID }}
   AZCOPY_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-  # AZCOPY_AUTO_LOGIN_TYPE: SPN
-  # AZCOPY_SPA_APPLICATION_ID: <application-id>
-  # AZCOPY_SPA_CLIENT_SECRET: <client-secret>
-  # AZCOPY_TENANT_ID: <tenant-id>
 
 permissions:
   id-token: write
@@ -52,27 +48,12 @@ jobs:
       - name: "Set variable"
         run: |
           echo "MY_DATE=$(date +'%Y-%m-%d')" >> GITHUB_ENV
-
-      # - name: Azure PowerShell script
-      #   uses: azure/powershell@v2
-      #   with:
-      #     azPSVersion: "latest"
-      #     inlineScript: |
-      #       Get-AzContext
-      #       $Date = $(Get-Date -Format "yyyy-MM-dd")
-      #       New-Item -ItemType File -Name 'my-file.txt' -Value "Hej $(Get-Date -Format "yyyy-MM-dd-HH-mm")"
-      #       azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/$Date/my-file.txt
+          echo $MY_DATE
 
       - name: "AzCopy"
         run: |
+          echo $MY_DATE
           azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/$MY_DATE/my-github-file.txt
-
-      # - name: Azure CLI script
-      #   uses: azure/cli@v2
-      #   with:
-      #      azcliversion: latest
-      #      inlineScript: |
-      #        azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/${{ vars.MY_DATE }}/my-github-file.txt
 
       - name: Show env vars
         uses: azure/powershell@v2
