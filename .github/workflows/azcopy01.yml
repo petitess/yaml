@@ -1,61 +1,70 @@
-name: 'AzCopy OICD'
+name: "AzCopy OICD"
 
 on:
   workflow_dispatch:
 
 env:
-  # ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}  
+  # ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}
   ARM_USE_OIDC: true
-  # ARM_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }} 
+  # ARM_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
   # ARM_TENANT_ID: ${{ secrets.TENANT_ID }}
-  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }} 
-  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }} 
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
   AZCOPY_AUTO_LOGIN_TYPE: PSCRED
 
 permissions:
-    id-token: write
-    contents: write
+  id-token: write
+  contents: write
 
 jobs:
-    build-and-deploy:
-        runs-on: ubuntu-latest
-        environment: 'dev'
-        strategy: 
-            fail-fast: false
-            matrix: 
-                environment:
-                    - dev
-        steps:
-         - name: 'INFO'
-           run: | 
-                echo AZURE_CLIENT_ID : ${{ env.AZURE_CLIENT_ID }}
-                echo AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
-                echo AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: "dev"
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+    steps:
+      - name: "INFO"
+        run: |
+          echo AZURE_CLIENT_ID : ${{ env.AZURE_CLIENT_ID }}
+          echo AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
+          echo AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
 
-        #  - name: 'INFO'
-        #    run: |
-        #         gci env:* | sort-object name  
+      #  - name: 'INFO'
+      #    run: |
+      #         gci env:* | sort-object name
 
-         - name: 'Az CLI login'
-           uses: azure/login@v2
-           with:
-             client-id: '${{ env.AZURE_CLIENT_ID }}'
-             subscription-id: '${{ env.AZURE_SUBSCRIPTION_ID }}'
-             tenant-id: '${{ env.AZURE_TENANT_ID }}'
-             enable-AzPSSession: true
-      
-         - name: 'LS'  
-           run: |
-               ls ..
-               ls ../..
+      - name: "Az CLI login"
+        uses: azure/login@v2
+        with:
+          client-id: "${{ env.AZURE_CLIENT_ID }}"
+          subscription-id: "${{ env.AZURE_SUBSCRIPTION_ID }}"
+          tenant-id: "${{ env.AZURE_TENANT_ID }}"
+          enable-AzPSSession: true
 
-        #az account show
-        
-        #  - name: Azure PowerShell script
-        #    uses: azure/powershell@v2
-        #    with:
-        #       azPSVersion: "latest"
-        #       inlineScript: |
-        #         Get-AzContext
-        #         azcopy copy  https://stgithubprod01.blob.core.windows.net/abc
+      - name: "LS"
+        run: |
+          ls ..
+
+      - name: Show env vars
+        uses: azure/powershell@v2
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            Get-ChildItem Env:
+
+      - name: Azure PowerShell script
+        uses: azure/powershell@v2
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            Get-AzContext
+            $Date = (Get-Date -Format "yyyy-MM-dd")
+            New-Item -ItemType File -Name 'my-file.txt'
+
+      - name: "AzCopy"
+        run: |
+          azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc
