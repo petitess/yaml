@@ -1,0 +1,53 @@
+name: 'AzCopy OICD'
+
+on:
+  workflow_dispatch:
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}  
+  ARM_USE_OIDC: true
+  ARM_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }} 
+  ARM_TENANT_ID: ${{ secrets.TENANT_ID }}
+  # AZURE_CLIENT_ID: the service principal client ID or user-assigned managed identity client ID
+  # AZURE_SUBSCRIPTION_ID: the subscription ID
+  # AZURE_TENANT_ID: 
+
+permissions:
+    id-token: write
+    contents: write
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+        environment: 'dev'
+        strategy: 
+            fail-fast: false
+            matrix: 
+                environment:
+                    - dev
+        steps:
+         - name: 'INFO'
+           run: | 
+                echo ARM_CLIENT_ID : ${{ env.ARM_CLIENT_ID }}
+                echo ARM_SUBSCRIPTION_ID: ${{ env.ARM_SUBSCRIPTION_ID }}
+                echo ARM_TENANT_ID: ${{ env.ARM_TENANT_ID }}
+                
+         - name: 'Az CLI login'
+           uses: azure/login@v2
+           with:
+             client-id: '${{ env.ARM_CLIENT_ID }}'
+             subscription-id: '${{ env.ARM_SUBSCRIPTION_ID }}'
+             tenant-id: '${{ env.ARM_TENANT_ID }}'
+             enable-AzPSSession: true
+      
+         - name: 'Run az commands'
+           shell: pwsh   
+           run: |
+               az account show
+
+         - name: Azure PowerShell script
+           uses: azure/powershell@v2
+           with:
+              azPSVersion: "latest"
+              inlineScript: |
+                Get-AzContext
