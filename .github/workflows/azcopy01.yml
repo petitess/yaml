@@ -45,17 +45,16 @@ jobs:
              tenant-id: '${{ env.AZURE_TENANT_ID }}'
              enable-AzPSSession: true
       
-        #  - name: 'Run az commands'
-        #    shell: pwsh   
-        #    run: |
-        #        azcopy list https://stgithubprod01.blob.core.windows.net/github-backup/2024-06-10
+         - name: 'LS'  
+           run: |
+               ls
 
         #az account show
         
-         - name: Azure PowerShell script
-           uses: azure/powershell@v2
-           with:
-              azPSVersion: "latest"
-              inlineScript: |
-                Get-AzContext
-                azcopy list https://stgithubprod01.blob.core.windows.net/github-backup/2024-06-10
+        #  - name: Azure PowerShell script
+        #    uses: azure/powershell@v2
+        #    with:
+        #       azPSVersion: "latest"
+        #       inlineScript: |
+        #         Get-AzContext
+        #         azcopy copy  https://stgithubprod01.blob.core.windows.net/abc
