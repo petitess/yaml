@@ -65,7 +65,7 @@ jobs:
 
       - name: "AzCopy"
         run: |
-          azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/${{ vars.MY_DATE }}/my-github-file.txt
+          azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/$MY_DATE/my-github-file.txt
 
       # - name: Azure CLI script
       #   uses: azure/cli@v2
