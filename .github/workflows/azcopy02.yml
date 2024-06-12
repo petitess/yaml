@@ -48,8 +48,8 @@ jobs:
           azPSVersion: "latest"
           inlineScript: |
             Get-AzContext
-            $Date = (Get-Date -Format "yyyy-MM-dd")
-            New-Item -ItemType File -Name 'my-file.txt' -Value "Hej"
+            $Date = $(Get-Date -Format "yyyy-MM-dd")
+            New-Item -ItemType File -Name 'my-file.txt' -Value "Hej $(Get-Date -Format "yyyy-MM-dd-HH-mm")"
             azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/$Date/my-file.txt
 
       - name: Show env vars
