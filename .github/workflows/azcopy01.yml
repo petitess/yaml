@@ -49,13 +49,6 @@ jobs:
         run: |
           ls ..
 
-      - name: Show env vars
-        uses: azure/powershell@v2
-        with:
-          azPSVersion: "latest"
-          inlineScript: |
-            Get-ChildItem Env:
-
       - name: Azure PowerShell script
         uses: azure/powershell@v2
         with:
@@ -64,7 +57,12 @@ jobs:
             Get-AzContext
             $Date = (Get-Date -Format "yyyy-MM-dd")
             New-Item -ItemType File -Name 'my-file.txt'
+            azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/$Date
 
-      - name: "AzCopy"
-        run: |
-          azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc
+      - name: Show env vars
+        uses: azure/powershell@v2
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            Get-ChildItem Env:
+
