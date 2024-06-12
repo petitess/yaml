@@ -41,7 +41,7 @@ jobs:
            uses: azure/login@v2
            with:
              client-id: '${{ env.AZURE_CLIENT_ID }}'
-             subscription-id: '${{ env.ARM_SUBSCRIPTION_ID }}'
+             subscription-id: '${{ env.AZURE_SUBSCRIPTION_ID }}'
              tenant-id: '${{ env.AZURE_TENANT_ID }}'
              enable-AzPSSession: true
       
