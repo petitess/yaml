@@ -1,4 +1,4 @@
-name: "AzCopy OICD"
+name: "AzCopy OIDC"
 
 on:
   workflow_dispatch:
