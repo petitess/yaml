@@ -58,3 +58,4 @@ jobs:
               azPSVersion: "latest"
               inlineScript: |
                 Get-AzContext
+                azcopy list https://stgithubprod01.blob.core.windows.net/github-backup/2024-06-10
