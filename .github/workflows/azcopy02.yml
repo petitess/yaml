@@ -9,6 +9,8 @@ env:
   AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
   AZCOPY_AUTO_LOGIN_TYPE: AZCLI
+  AZCOPY_SPA_APPLICATION_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZCOPY_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
   # AZCOPY_AUTO_LOGIN_TYPE: SPN
   # AZCOPY_SPA_APPLICATION_ID: <application-id>
   # AZCOPY_SPA_CLIENT_SECRET: <client-secret>
@@ -63,7 +65,6 @@ jobs:
 
       - name: "AzCopy"
         run: |
-          azcopy login --login-type=AZCLI
           azcopy copy my-file.txt  https://stgithubprod01.blob.core.windows.net/abc/${{ vars.MY_DATE }}/my-github-file.txt
 
       # - name: Azure CLI script
