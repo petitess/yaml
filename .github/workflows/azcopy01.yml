@@ -48,6 +48,7 @@ jobs:
          - name: 'LS'  
            run: |
                ls ..
+               ls ../..
 
         #az account show
         
