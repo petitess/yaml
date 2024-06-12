@@ -1,13 +1,13 @@
-name: 'Pipeline test'
+name: 'Login test'
 
 on:
   workflow_dispatch:
 
 env:
-  ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }} 
+  ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }} 
   ARM_USE_OIDC: true
-  ARM_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }} 
-  ARM_TENANT_ID: ${{ secrets.TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }} 
+  ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
 
 permissions:
     id-token: write
@@ -40,7 +40,4 @@ jobs:
            shell: pwsh   
            run: |
                az account show
-         - name: 'Deploy Bbvei'
-           shell: pwsh   
-           run: |
-               .deploy.ps1 dev
+ 
