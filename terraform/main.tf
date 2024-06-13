@@ -23,6 +23,9 @@ provider "azurerm" {
 }
 
 variable "sub_id" {}
+variable "env" {
+  
+}
 
 data "azurerm_subscription" "sub" {}
 
