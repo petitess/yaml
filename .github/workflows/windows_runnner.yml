@@ -32,7 +32,7 @@ jobs:
 
     defaults:
       run:
-        shell: powershell
+        shell: pwsh
         working-directory: ${{github.workspace}}/terraform
 
     steps:
@@ -55,17 +55,17 @@ jobs:
           terraform_version: ~1.8.0
 
       - name: Get Folder
-        shell: powershell
+        #shell: powershell
         run: |
           Get-ChildItem
 
       - name: Plan
-        shell: powershell
+        #shell: powershell
         run: |
           .\init-plan.ps1 ${{ matrix.environment }}
 
       - name: Get Folder
-        shell: powershell
+        #shell: powershell
         run: |
           Get-ChildItem
 
