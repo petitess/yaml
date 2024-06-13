@@ -18,7 +18,7 @@ Write-Host "TEN: $($TenantId.Substring(0, 15))"
 
 
 terraform init -input=false `
-    -backend-config="storage_account_name=stgithubprod01 " `
+    -backend-config="storage_account_name=stgithubprod01" `
     -backend-config="subscription_id=$SubId" `
     -backend-config="tenant_id=$TenantId "
 
