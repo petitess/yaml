@@ -53,6 +53,11 @@ jobs:
       run: |
         .\init-plan.ps1 ${{ matrix.environment }}
 
+    - name: Get Folder
+      shell: pwsh
+      run: |
+        Get-ChildItem
+
   # terraform_apply:
   #   name: 'Terraform Apply'
   #   runs-on: ubuntu-latest
