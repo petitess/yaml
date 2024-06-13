@@ -32,7 +32,7 @@ jobs:
 
     defaults:
       run:
-        shell: pwsh
+        #shell: pwsh
         working-directory: ${{github.workspace}}/terraform
 
     steps:
@@ -40,6 +40,7 @@ jobs:
         uses: actions/checkout@v3
         ######
         #Configure federated credentials
+      - uses: pietrobolcato/install-azure-cli-action@main
         ######
       - name: Azure login
         uses: azure/login@v2
