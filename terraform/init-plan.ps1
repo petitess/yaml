@@ -16,6 +16,7 @@ Write-Host "ENV: $Environment"
 Write-Host "SUB: $($SubId.Substring(0, 15))"
 Write-Host "TEN: $($TenantId.Substring(0, 15))"
 
+Start-Process terraform
 
 terraform init -input=false `
     -backend-config="storage_account_name=stgithubprod01" `
