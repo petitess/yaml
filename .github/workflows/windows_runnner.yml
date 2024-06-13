@@ -32,7 +32,7 @@ jobs:
 
     defaults:
       run:
-        shell: bash
+        shell: pwsh
         working-directory: ${{github.workspace}}/terraform
 
     steps:
