@@ -52,6 +52,7 @@ jobs:
       - name: Get Folder
         shell: powershell
         run: |
+          Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser
           Get-ChildItem
 
       - name: Plan
