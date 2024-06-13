@@ -40,7 +40,7 @@ jobs:
         uses: actions/checkout@v4
         ######
         #Configure federated credentials
-      - uses: pietrobolcato/install-azure-cli-action@main
+    #- uses: pietrobolcato/install-azure-cli-action@main
         ######
       - name: Azure login
         uses: azure/login@v2
