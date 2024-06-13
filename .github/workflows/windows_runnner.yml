@@ -53,7 +53,7 @@ jobs:
         shell: powershell
         run: |
           Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser
-          Get-ChildItem
+          #Get-ChildItem
 
       - name: Plan
         shell: pwsh
