@@ -21,6 +21,6 @@ Start-Process terraform
 terraform init -input=false `
     -backend-config="storage_account_name=stgithubprod01" `
     -backend-config="subscription_id=$SubId" `
-    -backend-config="tenant_id=$TenantId "
+    -backend-config="tenant_id=$TenantId"
 
 terraform plan -out=tfplan -input=false -var="env=$Environment" -var="sub_id=$SubId"
