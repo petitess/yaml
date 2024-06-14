@@ -16,10 +16,9 @@ Write-Host "ENV: $Environment"
 Write-Host "SUB: $($SubId.Substring(0, 15))"
 Write-Host "TEN: $($TenantId.Substring(0, 15))"
 
-
-Write-Host terraform init -input=false `
+terraform init -input=false `
     -backend-config="storage_account_name=stgithubprod01" `
     -backend-config="subscription_id=$SubId" `
     -backend-config="tenant_id=$TenantId"
 
-Write-Host terraform plan -out=tfplan -input=false -var="env=$Environment" -var="sub_id=$SubId"
+terraform plan -out=tfplan -input=false -var="env=$Environment" -var="sub_id=$SubId"

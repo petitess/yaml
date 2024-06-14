@@ -21,7 +21,7 @@ permissions:
 jobs:
   terraform_build_and_plan:
     name: "Terraform Build & Plan"
-    runs-on: self-hosted #ubuntu-latest
+    runs-on: ubuntu-latest # self-hosted #ubuntu-latest
     environment: ${{ matrix.environment }}
     strategy:
       fail-fast: false
