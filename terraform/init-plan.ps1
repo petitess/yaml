@@ -22,4 +22,4 @@ Write-Host terraform init -input=false `
     -backend-config="subscription_id=$SubId" `
     -backend-config="tenant_id=$TenantId"
 
-terraform plan -out=tfplan -input=false -var="env=$Environment" -var="sub_id=$SubId"
+Write-Host terraform plan -out=tfplan -input=false -var="env=$Environment" -var="sub_id=$SubId"
