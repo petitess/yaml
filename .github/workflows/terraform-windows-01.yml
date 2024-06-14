@@ -121,4 +121,4 @@ jobs:
               -backend-config="subscription_id=$SubId" `
               -backend-config="tenant_id=$TenantId "
 
-          terraform apply -auto-approve -input=false -var="env=${{ matrix.environment }}" -var="subid=$SubId"
+          terraform apply -auto-approve -input=false -var="env=${{ matrix.environment }}" -var="sub_id=$SubId"
