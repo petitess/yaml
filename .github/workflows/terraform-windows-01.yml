@@ -21,7 +21,7 @@ permissions:
 jobs:
   terraform_build_and_plan:
     name: "Terraform Build & Plan"
-    runs-on: self-hosted #ubuntu-latest
+    runs-on: self-hosted
     environment: ${{ matrix.environment }}
     strategy:
       fail-fast: false
@@ -73,7 +73,7 @@ jobs:
 
   terraform_apply:
     name: "Terraform Apply"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -86,7 +86,7 @@ jobs:
 
     defaults:
       run:
-        shell: bash
+        shell: pwsh
         working-directory: ${{github.workspace}}/databricks
 
     steps:
@@ -101,7 +101,6 @@ jobs:
           subscription-id: ${{env.ARM_SUBSCRIPTION_ID}}
 
       - name: Apply
-        shell: pwsh
         run: |
           $SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
           $TenantId = $(az account show --query tenantId -o tsv)
