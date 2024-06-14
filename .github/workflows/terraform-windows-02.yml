@@ -1,0 +1,124 @@
+name: "Windows Runner Self-Hosted AzCli"
+
+on:
+  workflow_dispatch:
+  #push:
+  # schedule:
+  #   - cron:  '0 3 * * *'
+
+env:
+  ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  ARM_USE_OIDC: true
+  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  TFSTATE_STORAGE: ${{ vars.TFSTATE_STORAGE }}
+  TERRAFORM_VERSION: 1.8.5
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  terraform_build_and_plan:
+    name: "Terraform Build & Plan"
+    runs-on: self-hosted
+    environment: ${{ matrix.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+          #- stg
+
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: ${{github.workspace}}/terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{env.ARM_CLIENT_ID}}
+          tenant-id: ${{env.ARM_TENANT_ID}}
+          subscription-id: ${{env.ARM_SUBSCRIPTION_ID}}
+
+      - name: Setup Terraform
+        uses: autero1/action-terraform@v3
+        with:
+          terraform-version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Get Folder
+        run: |
+          Get-ChildItem
+
+      - name: Plan
+        run: |
+          $SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
+          $TenantId = $(az account show --query tenantId -o tsv)
+
+          Write-Host "ENV: ${{ matrix.environment }}"
+          Write-Host "SUB: $($SubId.Substring(0, 15))"
+          Write-Host "TEN: $($TenantId.Substring(0, 15))"
+
+          terraform init -input=false `
+              -backend-config="storage_account_name=${{env.TFSTATE_STORAGE}}" `
+              -backend-config="subscription_id=$SubId" `
+              -backend-config="tenant_id=$TenantId"
+
+          terraform plan -out=tfplan -input=false -var="env=${{ matrix.environment }}" -var="sub_id=$SubId"
+
+  terraform_apply:
+    name: "Terraform Apply"
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+          #- stg
+
+    environment: ${{ matrix.environment }}
+    needs: [terraform_build_and_plan]
+
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: ${{github.workspace}}/terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{env.ARM_CLIENT_ID}}
+          tenant-id: ${{env.ARM_TENANT_ID}}
+          subscription-id: ${{env.ARM_SUBSCRIPTION_ID}}
+      
+      - name: Setup Terraform
+        uses: autero1/action-terraform@v3
+        with:
+          terraform-version: ${{env.TERRAFORM_VERSION}}
+
+      - name: Apply
+        run: |
+          $SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
+          $TenantId = $(az account show --query tenantId -o tsv)
+
+          Write-Host "ENV: ${{ matrix.environment }}"
+          Write-Host "SUB: $($SubId.Substring(0, 15))"
+          Write-Host "TEN: $($TenantId.Substring(0, 15))"
+
+
+          terraform init -input=false `
+              -backend-config="storage_account_name=${{env.TFSTATE_STORAGE}}" `
+              -backend-config="subscription_id=$SubId" `
+              -backend-config="tenant_id=$TenantId "
+
+          terraform apply -auto-approve -input=false -var="env=${{ matrix.environment }}" -var="sub_id=$SubId"
