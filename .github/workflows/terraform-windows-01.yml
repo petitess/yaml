@@ -60,7 +60,7 @@ jobs:
           $SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
           $TenantId = $(az account show --query tenantId -o tsv)
 
-          Write-Host "ENV: $Environment"
+          Write-Host "ENV: ${{ matrix.environment }}"
           Write-Host "SUB: $($SubId.Substring(0, 15))"
           Write-Host "TEN: $($TenantId.Substring(0, 15))"
 
@@ -69,38 +69,51 @@ jobs:
               -backend-config="subscription_id=$SubId" `
               -backend-config="tenant_id=$TenantId"
 
-          terraform plan -out=tfplan -input=false -var="env=$Environment" -var="sub_id=$SubId"
+          terraform plan -out=tfplan -input=false -var="env=${{ matrix.environment }}" -var="sub_id=$SubId"
 
-  # terraform_apply:
-  #   name: "Terraform Apply"
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       environment:
-  #         - dev
-  #         #- stg
+  terraform_apply:
+    name: "Terraform Apply"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+          #- stg
 
-  #   environment: ${{ matrix.environment }}
-  #   needs: [terraform_build_and_plan]
+    environment: ${{ matrix.environment }}
+    needs: [terraform_build_and_plan]
 
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #       working-directory: ${{github.workspace}}/databricks
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{github.workspace}}/databricks
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-  #     - name: Azure login
-  #       uses: azure/login@v2
-  #       with:
-  #         client-id: ${{env.ARM_CLIENT_ID}}
-  #         tenant-id: ${{env.ARM_TENANT_ID}}
-  #         subscription-id: ${{env.ARM_SUBSCRIPTION_ID}}
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{env.ARM_CLIENT_ID}}
+          tenant-id: ${{env.ARM_TENANT_ID}}
+          subscription-id: ${{env.ARM_SUBSCRIPTION_ID}}
 
-  #     - name: Plan
-  #       shell: pwsh
-  #       run: |
-  #         .\init-apply.ps1 ${{ matrix.environment }}
+      - name: Apply
+        shell: pwsh
+        run: |
+          $SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
+          $TenantId = $(az account show --query tenantId -o tsv)
+
+          Write-Host "ENV: ${{ matrix.environment }}"
+          Write-Host "SUB: $($SubId.Substring(0, 15))"
+          Write-Host "TEN: $($TenantId.Substring(0, 15))"
+
+
+          terraform init -input=false `
+              -backend-config="storage_account_name=${{env.TFSTATE_STORAGE}}" `
+              -backend-config="subscription_id=$SubId" `
+              -backend-config="tenant_id=$TenantId "
+
+          terraform apply -auto-approve -input=false -var="env=${{ matrix.environment }}" -var="subid=$SubId"
