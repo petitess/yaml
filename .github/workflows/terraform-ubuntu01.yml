@@ -57,10 +57,6 @@ jobs:
 
       - name: Plan
         run: |
-          #$ErrorActionPreference = 'Stop'
-
-          #Set-Location $PSScriptRoot
-
           $SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
           $TenantId = $(az account show --query tenantId -o tsv)
 
@@ -110,16 +106,12 @@ jobs:
 
       - name: Apply
         run: |
-          $ErrorActionPreference = 'Stop'
-          Set-Location $PSScriptRoot
-          
           $SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
           $TenantId = $(az account show --query tenantId -o tsv)
 
           Write-Host "ENV: ${{ matrix.environment }}"
           Write-Host "SUB: $($SubId.Substring(0, 15))"
           Write-Host "TEN: $($TenantId.Substring(0, 15))"
-
 
           terraform init -input=false `
               -backend-config="storage_account_name=${{env.TFSTATE_STORAGE}}" `
