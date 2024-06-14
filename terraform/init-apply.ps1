@@ -8,9 +8,8 @@ param (
 $ErrorActionPreference = 'Stop'
 
 Set-Location $PSScriptRoot
-$Config = Get-Content 'config.json' | ConvertFrom-Json
 
-$SubId = $(az account show --name $Config.sub.$Environment --query id -o tsv)
+$SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
 $TenantId = $(az account show --query tenantId -o tsv)
 
 Write-Host "ENV: $Environment"
