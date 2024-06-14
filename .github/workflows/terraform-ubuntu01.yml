@@ -57,9 +57,9 @@ jobs:
 
       - name: Plan
         run: |
-          $ErrorActionPreference = 'Stop'
+          #$ErrorActionPreference = 'Stop'
 
-          Set-Location $PSScriptRoot
+          #Set-Location $PSScriptRoot
 
           $SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
           $TenantId = $(az account show --query tenantId -o tsv)
