@@ -87,7 +87,7 @@ jobs:
     defaults:
       run:
         shell: pwsh
-        working-directory: ${{github.workspace}}/databricks
+        working-directory: ${{github.workspace}}/terraform
 
     steps:
       - name: Checkout
