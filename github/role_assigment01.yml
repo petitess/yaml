@@ -1,0 +1,92 @@
+name: Role Assigment
+ 
+on:
+  workflow_dispatch:
+    inputs:
+      user_id:
+        description: User Object Id
+        required: true
+        default: "x-85c9-54fcf802d2a9"
+      sub_id:
+        description: Subscription Id
+        required: true
+        default: "x-9846-388592002887"
+      role_name:
+        description: Role Name
+        required: true
+        default: Role A
+      role-exists:
+        type: boolean
+        default: true
+        description: The role already exists
+ 
+env:
+  ARM_CLIENT_ID: ${{ secrets.SERVICE_PRINCIPAL_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.SERVICE_PRINCIPAL_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.SPOKE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.TENANT_ID }}
+  ROLE_NAME: "${{ github.event.inputs.role_name }}"
+ 
+jobs:
+  role:
+    name: role
+    runs-on: self-hosted
+ 
+    defaults:
+      run:
+        shell: pwsh
+ 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+ 
+      - name: az login
+        run: az login --service-principal -u ${{ secrets.SERVICE_PRINCIPAL_CLIENT_ID }} -p ${{ secrets.SERVICE_PRINCIPAL_CLIENT_SECRET }} --tenant ${{ secrets.TENANT_ID }}
+ 
+      - name: Custom Role
+        shell: pwsh
+        id: role
+        run: |
+          $RoleName = "${{env.ROLE_NAME}}"
+          ${{ github.event.inputs.role-exists }}
+          if ("${{ github.event.inputs.role-exists }}" -eq "true") {
+              Write-Output "$RoleName already exists"
+          }
+          else {
+              Write-Output "Create role: $RoleName"
+              $RoleGuid = az role definition create --role-definition  '{"Name":"${{env.ROLE_NAME}}","IsCustom":true,"Description":"${{env.ROLE_NAME}}","Actions":["*/read","Microsoft.Authorization/*"],"NotActions":[],"DataActions":[],"NotDataActions":[],"AssignableScopes":["/subscriptions/${{env.ARM_SUBSCRIPTION_ID}}"]}' --query name -o tsv
+              Start-Sleep 20
+              #echo roleGuid=$RoleGuid >> $env:GITHUB_OUTPUT
+          }
+ 
+  assigment:
+    name: assigment
+    runs-on: self-hosted
+    needs: [role]
+ 
+    defaults:
+      run:
+        shell: pwsh
+ 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+ 
+      - name: az login
+        run: az login --service-principal -u ${{ secrets.SERVICE_PRINCIPAL_CLIENT_ID }} -p ${{ secrets.SERVICE_PRINCIPAL_CLIENT_SECRET }} --tenant ${{ secrets.TENANT_ID }}
+ 
+      - name: Role Assigment
+        shell: pwsh
+        run: |
+          if (az role assignment list --role "${{github.event.inputs.role_name}}" --assignee "${{ github.event.inputs.user_id }}" --scope "/subscriptions/${{ github.event.inputs.sub_id }}" --query "[].roleDefinitionName" --output tsv) {
+              Write-Output "Role assigment already exists"
+          }
+          else {
+              Write-Output "Creating role assigment"
+              az role assignment create --role "${{github.event.inputs.role_name}}" --scope "/subscriptions/${{ github.event.inputs.sub_id }}" --assignee-object-id "${{ github.event.inputs.user_id }}" --assignee-principal-type User
+          }
+ 
+      - name: Check assigments
+        shell: pwsh
+        run: az role assignment list --scope "/subscriptions/${{ github.event.inputs.sub_id }}" --query "[].{principal:principalName, role:roleDefinitionName}"
+har snabbmeny
