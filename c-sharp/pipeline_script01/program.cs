@@ -10,7 +10,6 @@ namespace ConsolePipeline
             Console.WriteLine("Hello, " + MyName);
             Console.WriteLine("CurrentDirectory: " + Environment.CurrentDirectory);
             Console.WriteLine("Platform: " + Environment.OSVersion.Platform);
-            Console.WriteLine("KAROL_OIDC: " + Environment.GetEnvironmentVariable("KAROL_OIDC"));
             Console.WriteLine("MY_NAME_BASH: " + Environment.GetEnvironmentVariable("MY_NAME_BASH"));
             Console.WriteLine("MY_NAME_PWSH: " + Environment.GetEnvironmentVariable("MY_NAME_PWSH"));
 
