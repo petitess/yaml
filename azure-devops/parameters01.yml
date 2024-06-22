@@ -1,0 +1,52 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - parameters01.yml
+
+parameters:
+  - name: environments
+    type: object
+    default:
+      - prod
+  - name: image
+    displayName: Pool Image
+    type: string
+    default: ubuntu-latest
+    values:
+      - windows-latest
+      - ubuntu-latest
+      - macOS-latest
+  - name: test
+    displayName: Run Tests?
+    type: boolean
+    default: false
+
+pool:
+  vmImage: ubuntu-latest
+
+schedules:
+  - cron: "32 6 * * *"
+    displayName: "automatiserad"
+    always: true
+    branches:
+      include:
+        - main
+
+jobs:
+  - ${{ each env in parameters.environments }}:
+    - job: build_${{ env }}
+      displayName: build ${{ env }}
+      pool:
+        vmImage: ${{ parameters.image }}
+      steps:
+        - script: echo building $(Build.BuildNumber) with ${{ parameters.image }} ${{ env }}
+          displayName: Say hello
+        - ${{ if eq(parameters.test, true) }}:
+            - script: echo "Running all the tests ${{ env }}"
+              displayName: Running all the tests
+        - ${{ if eq(variables['Build.Reason'], 'Schedule') }}:
+            - script: echo "Running scheduled task ${{ env }}"
+              displayName: Schedule
