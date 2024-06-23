@@ -49,4 +49,4 @@ jobs:
           inlineScript: |
             $Token = (Get-AzAccessToken).Token
             Write-Host "##vso[task.setvariable variable=AZ_TOKEN]$Token"
-            Get-ChildItem
+            Get-ChildItem Env:
