@@ -56,5 +56,5 @@ jobs:
       - name: Run dotnet
         shell: pwsh
         run: | 
-          (Get-ChildItem).Name
-          dotnet run --project **/ConsolePipeline.csproj --property:Configuration=Release
+          (Get-ChildItem ConsolePipeline).Name
+          dotnet run --project './ConsolePipeline/*.csproj' --property:Configuration=Release
