@@ -28,6 +28,8 @@ jobs:
         environment:
           - dev
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       # - name: "INFO"
       #   run: |
       #     echo AZURE_CLIENT_ID : ${{ env.AZURE_CLIENT_ID }}
