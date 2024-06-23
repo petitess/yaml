@@ -48,5 +48,7 @@ jobs:
           azPSVersion: "latest"
           inlineScript: |
             $Token = (Get-AzAccessToken).Token
-            Write-Host "##vso[task.setvariable variable=AZ_TOKEN]$Token"
+            echo "AZ_TOKEN=$Token" >> $GITHUB_ENV
             Get-ChildItem Env:
+
+
