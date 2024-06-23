@@ -36,11 +36,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up .NET
-        uses: xt0rted/setup-dotnet@v1.0.0
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            8.0.6
+          dotnet-version: '8.0.x'
 
       - name: "Az CLI login"
         uses: azure/login@v2
