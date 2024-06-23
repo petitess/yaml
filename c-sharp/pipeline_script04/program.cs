@@ -16,9 +16,11 @@ namespace ConsolePipeline
                     new TokenRequestContext(
             new[] { "https://management.azure.com/.default" }
             ));*/
+            //{ "https://management.azure.com/.default" }
             //{ "https://vault.azure.net/.default" }
 
             string token = Environment.GetEnvironmentVariable("AZ_TOKEN");
+            string secret = Environment.GetEnvironmentVariable("MY_SECRET");
             string subscriptionId = "2d9f44ea-e3df-4ea1-b956-8c7a43b119a0";
 
             string subid = subscriptionId;
@@ -33,7 +35,7 @@ namespace ConsolePipeline
 
             var jsonContent = new StringContent(JsonConvert.SerializeObject(new
             {
-                properties = new { value = "12341267", contentType = $"{DateTime.Now.ToString("dd-MM-yyyy HH:mm")}" }
+                properties = new { value = secret, contentType = $"{DateTime.Now.ToString("dd-MM-yyyy HH:mm")}" }
 
             }), Encoding.UTF8, "application/json");
 
