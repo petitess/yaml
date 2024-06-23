@@ -59,4 +59,4 @@ jobs:
 
       - name: Run dontnet
         run: | 
-          #dotnet run --project ./ConsolePipeline.csproj
+          dotnet run --project ./ConsolePipeline.csproj
