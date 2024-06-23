@@ -7,6 +7,8 @@ pool:
 parameters:
   - name: name 
     default: karol
+  - name: secret 
+    default: my-secret
 
 variables:
   solution: '**/*.sln'
@@ -33,17 +35,13 @@ jobs:
           $Token = az account get-access-token --query accessToken --output tsv
           Write-Host "##vso[task.setvariable variable=AZ_TOKEN]$Token"
 
-
-    - script: | 
-        echo "##vso[task.setvariable variable=MY_NAME_BASH]${{parameters.name}}"
-      displayName: Set Variables Bash
-
     - task: PowerShell@2
       displayName: Set Variables Pwsh
       inputs:
         targetType: inline
         script: |
-            Write-Host "##vso[task.setvariable variable=MY_NAME_PWSH]${{parameters.name}}"
+            Write-Host "##vso[task.setvariable variable=MY_NAME]${{parameters.name}}"
+            Write-Host "##vso[task.setvariable variable=MY_SECRET]${{parameters.secret}}"
             Get-ChildItem Env:
 
     - task: DotNetCoreCLI@2
