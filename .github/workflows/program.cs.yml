@@ -65,4 +65,4 @@ jobs:
         run: | 
           (Get-ChildItem ConsolePipeline).Name
           Test-Path ./ConsolePipeline/ConsolePipeline.csproj
-          dotnet run --configuration Release "ConsolePipeline/ConsolePipeline.csproj"
+          dotnet run --configuration Release --project "ConsolePipeline/ConsolePipeline.csproj"
