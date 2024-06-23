@@ -53,11 +53,16 @@ jobs:
             echo "AZ_TOKEN=$Token" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
             Get-ChildItem Env:
 
-      - name: Run dotnet
-        shell: bash
+      - name: Build dotnet
+        shell: pwsh
         run: | 
+          (Get-ChildItem ConsolePipeline).Name
+          Test-Path ./ConsolePipeline/ConsolePipeline.csproj
           dotnet build --configuration Release "ConsolePipeline/ConsolePipeline.csproj"
 
-              # (Get-ChildItem ConsolePipeline).Name
-          # Test-Path ./ConsolePipeline/ConsolePipeline.csproj
-          # [IO.Path]::GetFullPath(".\")
+      - name: Run dotnet
+        shell: pwsh
+        run: | 
+          (Get-ChildItem ConsolePipeline).Name
+          Test-Path ./ConsolePipeline/ConsolePipeline.csproj
+          dotnet run --configuration Release "ConsolePipeline/ConsolePipeline.csproj"
