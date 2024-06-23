@@ -18,9 +18,9 @@ jobs:
   run-dot-net:
     runs-on: self-hosted ##ubuntu-latest
     environment: "dev"
-    # defaults:
-    #   run:
-    #     working-directory: ${{github.workspace}}
+    defaults:
+      run:
+        working-directory: ${{github.workspace}}/ConsolePipeline
 
     strategy:
       fail-fast: false
@@ -28,11 +28,11 @@ jobs:
         environment:
           - dev
     steps:
-      - name: "INFO"
-        run: |
-          echo AZURE_CLIENT_ID : ${{ env.AZURE_CLIENT_ID }}
-          echo AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
-          echo AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
+      # - name: "INFO"
+      #   run: |
+      #     echo AZURE_CLIENT_ID : ${{ env.AZURE_CLIENT_ID }}
+      #     echo AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
+      #     echo AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
 
       - name: "Az CLI login"
         uses: azure/login@v2
