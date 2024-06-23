@@ -1,0 +1,60 @@
+trigger: #none
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+parameters:
+  - name: name 
+    default: karol
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  serviceprincipal: sp-subconnect-01
+
+jobs:
+  - job: apply
+    displayName: key vault secret get request
+    steps:
+    # - task: UseDotNet@2
+    #   displayName: Install .NET 6
+    #   inputs: 
+    #     packageType: 'sdk'
+    #     version: 6.x
+    - task: AzureCLI@2
+      displayName: Create deployment
+      inputs:
+        azureSubscription: $(serviceprincipal)
+        scriptType: pscore
+        scriptLocation: inlineScript
+        inlineScript: |
+          $Token = az account get-access-token --query accessToken --output tsv
+          Write-Host "##vso[task.setvariable variable=AZ_TOKEN]$Token"
+
+
+    - script: | 
+        echo "##vso[task.setvariable variable=MY_NAME_BASH]${{parameters.name}}"
+      displayName: Set Variables Bash
+
+    - task: PowerShell@2
+      displayName: Set Variables Pwsh
+      inputs:
+        targetType: inline
+        script: |
+            Write-Host "##vso[task.setvariable variable=MY_NAME_PWSH]${{parameters.name}}"
+            Get-ChildItem Env:
+
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        command: build
+        projects: '**/*.csproj'
+        arguments: '--configuration $(buildConfiguration)'
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: run
+        projects: '**/ConsolePipeline.csproj'
+        arguments: '--configuration $(buildConfiguration)'
