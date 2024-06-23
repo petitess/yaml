@@ -16,7 +16,7 @@ variables:
 
 jobs:
   - job: apply
-    displayName: Environment variables
+    displayName: set a secret in a key vault
     steps:
     # - task: UseDotNet@2
     #   displayName: Install .NET 6
