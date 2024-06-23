@@ -52,3 +52,4 @@ jobs:
             Get-ChildItem Env:
 
 
+      - run: echo $env:AZ_TOKEN
