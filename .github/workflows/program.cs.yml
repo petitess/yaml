@@ -48,14 +48,6 @@ jobs:
         run: |
           ls ..
 
-      - name: "LS"
-        run: |
-          ls ../..
-
-      - name: "LS"
-        run: |
-          ls ../../..
-
       - name: Get Token
         uses: azure/powershell@v2
         with:
