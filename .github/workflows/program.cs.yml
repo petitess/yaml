@@ -30,11 +30,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      # - name: "INFO"
-      #   run: |
-      #     echo AZURE_CLIENT_ID : ${{ env.AZURE_CLIENT_ID }}
-      #     echo AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
-      #     echo AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
 
       - name: "Az CLI login"
         uses: azure/login@v2
@@ -58,6 +53,6 @@ jobs:
             Get-ChildItem Env:
 
       - name: Run dontnet
+        shell: pwsh
         run: | 
-          ls
           dotnet run --project ConsolePipeline.csproj
