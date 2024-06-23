@@ -52,6 +52,7 @@ jobs:
             Get-ChildItem Env:
 
       - name: Display dotnet version
+        shell: pwsh
         run: | 
-          ls
+          Get-ChildItem
           dotnet run --project ./yaml/ConsolePipeline/ConsolePipeline.csproj
