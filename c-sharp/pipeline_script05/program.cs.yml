@@ -1,0 +1,74 @@
+name: "run dot net"
+
+on:
+  workflow_dispatch:
+    inputs:
+      secret:
+        description: Secret to save in key avult
+        required: true
+        default: secret01
+  push:
+
+env:
+  ARM_USE_OIDC: true
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  run-dot-net:
+    runs-on: ubuntu-latest
+    environment: "dev"
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: ${{github.workspace}}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: "Az CLI login"
+        uses: azure/login@v2
+        with:
+          client-id: "${{ env.AZURE_CLIENT_ID }}"
+          subscription-id: "${{ env.AZURE_SUBSCRIPTION_ID }}"
+          tenant-id: "${{ env.AZURE_TENANT_ID }}"
+          enable-AzPSSession: true
+
+      - name: "Get-ChildItem"
+        run: |
+          (Get-ChildItem).Name
+
+      - name: Save environment variables
+        uses: azure/powershell@v2
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            $Token = (Get-AzAccessToken).Token
+            echo "AZ_TOKEN=$Token" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            echo "MY_SECRET=${{ github.event.inputs.secret }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            Get-ChildItem Env:
+
+      - name: Build dotnet
+        shell: pwsh
+        run: |
+          (Get-ChildItem ConsolePipeline).Name
+          Test-Path ./ConsolePipeline/ConsolePipeline.csproj
+          dotnet build --configuration Release "ConsolePipeline/ConsolePipeline.csproj"
+
+      - name: Run dotnet
+        shell: pwsh
+        run: |
+          (Get-ChildItem ConsolePipeline).Name
+          Test-Path ./ConsolePipeline/ConsolePipeline.csproj
+          dotnet run --configuration Release --project "ConsolePipeline/ConsolePipeline.csproj"
