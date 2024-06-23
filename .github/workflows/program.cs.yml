@@ -18,9 +18,9 @@ jobs:
   run-dot-net:
     runs-on: self-hosted ##ubuntu-latest
     environment: "dev"
-    # defaults:
-    #   run:
-    #     working-directory: ${{github.workspace}}\ConsolePipeline
+    defaults:
+      run:
+        working-directory: ${{github.workspace}}\ConsolePipeline
 
     strategy:
       fail-fast: false
@@ -56,16 +56,15 @@ jobs:
         run: |
           ls ../../..
 
-      # - name: Get Token
-      #   uses: azure/powershell@v2
-      #   with:
-      #     azPSVersion: "latest"
-      #     inlineScript: |
-      #       $Token = (Get-AzAccessToken).Token
-      #       echo "AZ_TOKEN=$Token" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      #       Get-ChildItem Env:
+      - name: Get Token
+        uses: azure/powershell@v2
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            $Token = (Get-AzAccessToken).Token
+            echo "AZ_TOKEN=$Token" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            Get-ChildItem Env:
 
-      # - name: Display dotnet version
-      #   run: | 
-      #     ls ../../yaml
-      #     #dotnet run --project ../../yaml/ConsolePipeline/ConsolePipeline.csproj
+      - name: Run dontnet
+        run: | 
+          #dotnet run --project ./ConsolePipeline.csproj
