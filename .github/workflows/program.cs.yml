@@ -20,6 +20,7 @@ jobs:
     environment: "dev"
     defaults:
       run:
+        shell: pwsh
         working-directory: ${{github.workspace}}/ConsolePipeline
 
     strategy:
@@ -41,7 +42,7 @@ jobs:
 
       - name: "LS"
         run: |
-          ls ..
+          (Get-ChildItem).Name
 
       - name: Get Token
         uses: azure/powershell@v2
@@ -55,4 +56,5 @@ jobs:
       - name: Run dontnet
         shell: pwsh
         run: | 
+          (Get-ChildItem).Name
           dotnet run --project ConsolePipeline.csproj
