@@ -101,24 +101,24 @@ jobs:
           tenant-id: ${{env.ARM_TENANT_ID}}
           subscription-id: ${{env.ARM_SUBSCRIPTION_ID}}
       
-      - name: Setup Terraform
-        uses: autero1/action-terraform@v3
-        with:
-          terraform-version: ${{env.TERRAFORM_VERSION}}
+      # - name: Setup Terraform
+      #   uses: autero1/action-terraform@v3
+      #   with:
+      #     terraform-version: ${{env.TERRAFORM_VERSION}}
 
-      - name: Apply
-        run: |
-          $SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
-          $TenantId = $(az account show --query tenantId -o tsv)
+      # - name: Apply
+      #   run: |
+      #     $SubId = $(az account show --name 'sub-default-01' --query id -o tsv)
+      #     $TenantId = $(az account show --query tenantId -o tsv)
 
-          Write-Host "ENV: ${{ matrix.environment }}"
-          Write-Host "SUB: $($SubId.Substring(0, 15))"
-          Write-Host "TEN: $($TenantId.Substring(0, 15))"
+      #     Write-Host "ENV: ${{ matrix.environment }}"
+      #     Write-Host "SUB: $($SubId.Substring(0, 15))"
+      #     Write-Host "TEN: $($TenantId.Substring(0, 15))"
 
 
-          terraform init -input=false `
-              -backend-config="storage_account_name=${{env.TFSTATE_STORAGE}}" `
-              -backend-config="subscription_id=$SubId" `
-              -backend-config="tenant_id=$TenantId "
+      #     terraform init -input=false `
+      #         -backend-config="storage_account_name=${{env.TFSTATE_STORAGE}}" `
+      #         -backend-config="subscription_id=$SubId" `
+      #         -backend-config="tenant_id=$TenantId "
 
-          terraform apply -auto-approve -input=false -var="env=${{ matrix.environment }}" -var="sub_id=$SubId"
+      #     terraform apply -auto-approve -input=false -var="env=${{ matrix.environment }}" -var="sub_id=$SubId"
