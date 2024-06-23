@@ -16,7 +16,6 @@ namespace ConsolePipeline
                     new TokenRequestContext(
             new[] { "https://management.azure.com/.default" }
             ));*/
-            //{ "https://management.azure.com/.default" }
             //{ "https://vault.azure.net/.default" }
 
             string token = Environment.GetEnvironmentVariable("AZ_TOKEN");
