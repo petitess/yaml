@@ -60,4 +60,6 @@ jobs:
       - name: Display dotnet version
         run: | 
           ls
+          ls ..
+          ls ../..
           dotnet run --project yaml/ConsolePipeline/ConsolePipeline.csproj
