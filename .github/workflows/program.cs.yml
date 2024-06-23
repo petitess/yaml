@@ -52,4 +52,5 @@ jobs:
             Get-ChildItem Env:
 
 
-      - run: echo $AZ_TOKEN
+      - name: Display dotnet version
+        run: dotnet --version
