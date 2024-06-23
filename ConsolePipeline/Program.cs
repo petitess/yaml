@@ -20,7 +20,7 @@ namespace ConsolePipeline
             //{ "https://vault.azure.net/.default" }
 
             string token = Environment.GetEnvironmentVariable("AZ_TOKEN");
-            string secret = "123" //Environment.GetEnvironmentVariable("MY_SECRET");
+            string secret = Environment.GetEnvironmentVariable("MY_SECRET");
             string subscriptionId = "2d9f44ea-e3df-4ea1-b956-8c7a43b119a0";
 
             string subid = subscriptionId;

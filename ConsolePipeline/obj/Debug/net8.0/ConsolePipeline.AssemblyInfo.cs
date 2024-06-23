@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ConsolePipeline")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+96baba8684a1b1ccaf686b0f966cfe9d7b1054c2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8e119cf765b743d1dd5fff144633f98316706a5d")]
 [assembly: System.Reflection.AssemblyProductAttribute("ConsolePipeline")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ConsolePipeline")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
