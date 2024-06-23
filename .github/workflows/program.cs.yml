@@ -61,4 +61,4 @@ jobs:
         shell: pwsh
         run: | 
           (Get-ChildItem).Name
-          #dotnet run --project ./yaml/ConsolePipeline/ConsolePipeline.csproj
+    #dotnet run --project ./yaml/ConsolePipeline/ConsolePipeline.csproj
