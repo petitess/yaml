@@ -14,14 +14,16 @@ permissions:
   id-token: write
   contents: write
 
-defaults:
-  run:
-    working-directory: ${{github.workspace}}
-    
+
+
 jobs:
   run-dot-net:
     runs-on: ubuntu-latest
     environment: "dev"
+    defaults:
+      run:
+        working-directory: ${{github.workspace}}
+
     strategy:
       fail-fast: false
       matrix:
