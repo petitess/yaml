@@ -14,8 +14,12 @@ permissions:
   id-token: write
   contents: write
 
+defaults:
+  run:
+    working-directory: ${{github.workspace}}
+    
 jobs:
-  build-and-deploy:
+  run-dot-net:
     runs-on: ubuntu-latest
     environment: "dev"
     strategy:
