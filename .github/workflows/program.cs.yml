@@ -20,7 +20,7 @@ jobs:
     environment: "dev"
     defaults:
       run:
-        working-directory: ${{github.workspace}}\ConsolePipeline
+        working-directory: ${{github.workspace}}/ConsolePipeline
 
     strategy:
       fail-fast: false
