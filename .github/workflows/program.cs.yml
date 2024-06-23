@@ -48,7 +48,7 @@ jobs:
           azPSVersion: "latest"
           inlineScript: |
             $Token = (Get-AzAccessToken).Token
-            echo "AZ_TOKEN=$Token" >> $GITHUB_ENV
+            echo "AZ_TOKEN=$Token" >> $env:GITHUB_ENV
             Get-ChildItem Env:
 
 
