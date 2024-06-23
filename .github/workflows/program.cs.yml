@@ -7,7 +7,7 @@ on:
         description: Secret to save in key avult
         required: true
         default: secret01
-
+  push:
 env:
   ARM_USE_OIDC: true
   AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   run-dot-net:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: "dev"
     defaults:
       run:
