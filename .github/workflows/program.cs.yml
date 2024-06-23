@@ -51,6 +51,7 @@ jobs:
           inlineScript: |
             $Token = (Get-AzAccessToken).Token
             echo "AZ_TOKEN=$Token" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            echo "MY_SECRET=abc12" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
             Get-ChildItem Env:
 
       - name: Build dotnet
