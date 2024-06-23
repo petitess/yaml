@@ -1,0 +1,46 @@
+name: "run dot net"
+
+on:
+  workflow_dispatch:
+
+env:
+  ARM_USE_OIDC: true
+  AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: "dev"
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+    steps:
+      - name: "INFO"
+        run: |
+          echo AZURE_CLIENT_ID : ${{ env.AZURE_CLIENT_ID }}
+          echo AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
+          echo AZURE_TENANT_ID: ${{ env.AZURE_TENANT_ID }}
+
+      - name: "Az CLI login"
+        uses: azure/login@v2
+        with:
+          client-id: "${{ env.AZURE_CLIENT_ID }}"
+          subscription-id: "${{ env.AZURE_SUBSCRIPTION_ID }}"
+          tenant-id: "${{ env.AZURE_TENANT_ID }}"
+          enable-AzPSSession: true
+
+      - name: "LS"
+        run: |
+          ls ..
+
+      - name: Get Token
+        uses: azure/powershell@v2
+        with:
+          azPSVersion: "latest"
+          inlineScript: |
+            (Get-AzAccessToken).Token
+            Get-ChilItem
