@@ -7,7 +7,6 @@ on:
         description: Secret to save in key avult
         required: true
         default: secret01
-  push:
 
 env:
   ARM_USE_OIDC: true
