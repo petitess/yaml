@@ -21,7 +21,7 @@ namespace ConsolePipeline
 
             string token = Environment.GetEnvironmentVariable("AZ_TOKEN");
             string secret = Environment.GetEnvironmentVariable("MY_SECRET");
-            string subscriptionId = "2d9f44ea-e3df-4ea1-b956-8c7a43b119a0";
+            string subscriptionId = Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID");
 
             string subid = subscriptionId;
             string rgname = "rg-owner-prod-01";
