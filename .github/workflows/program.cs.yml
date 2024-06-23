@@ -54,9 +54,10 @@ jobs:
             Get-ChildItem Env:
 
       - name: Run dotnet
-        shell: pwsh
+        shell: bash
         run: | 
-          (Get-ChildItem ConsolePipeline).Name
-          Test-Path ./ConsolePipeline/ConsolePipeline.csproj
-          [IO.Path]::GetFullPath(".\")
           dotnet build --configuration Release "ConsolePipeline/ConsolePipeline.csproj"
+
+              # (Get-ChildItem ConsolePipeline).Name
+          # Test-Path ./ConsolePipeline/ConsolePipeline.csproj
+          # [IO.Path]::GetFullPath(".\")
