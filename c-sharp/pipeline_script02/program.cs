@@ -1,3 +1,5 @@
+using Azure.Core;
+using Azure.Identity;
 using Newtonsoft.Json.Linq;
 using System.Net;
 
