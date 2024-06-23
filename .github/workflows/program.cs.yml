@@ -58,4 +58,5 @@ jobs:
         run: | 
           (Get-ChildItem ConsolePipeline).Name
           Test-Path ./ConsolePipeline/ConsolePipeline.csproj
+          [IO.Path]::GetFullPath(".\")
           dotnet run --project './ConsolePipeline/ConsolePipeline.csproj' --property:Configuration=Release
