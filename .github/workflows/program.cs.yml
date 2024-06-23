@@ -21,7 +21,7 @@ jobs:
     defaults:
       run:
         shell: pwsh
-        working-directory: ${{github.workspace}}/ConsolePipeline
+        working-directory: ${{github.workspace}}
 
     strategy:
       fail-fast: false
@@ -53,7 +53,7 @@ jobs:
             echo "AZ_TOKEN=$Token" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
             Get-ChildItem Env:
 
-      - name: Run dontnet
+      - name: Run dotnet
         shell: pwsh
         run: | 
           (Get-ChildItem).Name
