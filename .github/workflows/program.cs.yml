@@ -14,11 +14,9 @@ permissions:
   id-token: write
   contents: write
 
-
-
 jobs:
   run-dot-net:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted ##ubuntu-latest
     environment: "dev"
     defaults:
       run:
