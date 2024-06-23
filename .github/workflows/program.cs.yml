@@ -22,7 +22,7 @@ jobs:
     environment: "dev"
     defaults:
       run:
-        working-directory: ${{github.workspace}}
+        working-directory: ${{github.workspace}}/yaml
 
     strategy:
       fail-fast: false
@@ -60,6 +60,4 @@ jobs:
       - name: Display dotnet version
         run: | 
           ls
-          ls ..
-          ls ../..
           dotnet run --project yaml/ConsolePipeline/ConsolePipeline.csproj
