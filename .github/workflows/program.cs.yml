@@ -2,6 +2,11 @@ name: "run dot net"
 
 on:
   workflow_dispatch:
+    inputs:
+      secret:
+        description: Secret to save in key avult
+        required: true
+        default: secret01
   push:
 
 env:
@@ -40,30 +45,30 @@ jobs:
           tenant-id: "${{ env.AZURE_TENANT_ID }}"
           enable-AzPSSession: true
 
-      - name: "LS"
+      - name: "Get-ChildItem"
         run: |
           (Get-ChildItem).Name
 
-      - name: Get Token
+      - name: Save environment variables
         uses: azure/powershell@v2
         with:
           azPSVersion: "latest"
           inlineScript: |
             $Token = (Get-AzAccessToken).Token
             echo "AZ_TOKEN=$Token" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-            echo "MY_SECRET=abc12" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            echo "MY_SECRET=${{ github.event.inputs.user_id }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
             Get-ChildItem Env:
 
       - name: Build dotnet
         shell: pwsh
-        run: | 
+        run: |
           (Get-ChildItem ConsolePipeline).Name
           Test-Path ./ConsolePipeline/ConsolePipeline.csproj
           dotnet build --configuration Release "ConsolePipeline/ConsolePipeline.csproj"
 
       - name: Run dotnet
         shell: pwsh
-        run: | 
+        run: |
           (Get-ChildItem ConsolePipeline).Name
           Test-Path ./ConsolePipeline/ConsolePipeline.csproj
           dotnet run --configuration Release --project "ConsolePipeline/ConsolePipeline.csproj"
