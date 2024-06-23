@@ -59,4 +59,4 @@ jobs:
           (Get-ChildItem ConsolePipeline).Name
           Test-Path ./ConsolePipeline/ConsolePipeline.csproj
           [IO.Path]::GetFullPath(".\")
-          dotnet build --configuration Release /ConsolePipeline/ConsolePipeline.csproj
+          dotnet build --configuration Release "ConsolePipeline/ConsolePipeline.csproj"
