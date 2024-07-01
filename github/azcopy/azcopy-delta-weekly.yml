@@ -1,0 +1,67 @@
+name: 'azcopy delta weekly'
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 21 * * 2'
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZCOPY_AUTO_LOGIN_TYPE: AZCLI
+  AZURE_CLIENT_ID: ${{ vars.CLIENT_ID_DEV }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.SUBSCRIPTION_ID_DEV }}
+  AZURE_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
+  ARM_USE_OIDC: true
+  AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_DEV }}
+  AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
+  DL_NAME: "stabcsatsdevweu01"
+  BACKUP_ST_NAME: "stabcsatsdevweu10"
+  BACKUP_SOURCE_FOLDER: "diaccadlsfsdev/dw/delta"
+  BACKUP_DEST_FOLDER: "diaccadlsfsdev/dw"
+  BACKUP_SOURCE_FOLDER_2: "diaccadlsfsdev/dw/delta_latest"
+  BACKUP_DEST_FOLDER_2: "diaccadlsfsdev/dw"
+
+jobs:
+  terraform_build_and_plan:
+    name: 'AzCopy delta weekly'
+    runs-on: [self-hosted, linux]
+    #environment: dev
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: kheiakiyama/install-azcopy-action@v1
+      with:
+        version: 'v10'
+
+    - name: Set MY_DATE environment variable
+      id: my_date
+      run: echo "MY_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Set TIMESTAMP environment variable
+      id: timestamp
+      run: echo "TIMESTAMP=$(date +"%Y%m%d%H%M%S")" >> $GITHUB_ENV
+    
+    - name: Print MY_DATE
+      run: |
+        echo MY_DATE: ${{ env.MY_DATE }}   
+        echo TIMESTAMP: ${{ env.TIMESTAMP }} 
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ env.AZURE_CLIENT_ID }}
+        tenant-id: ${{ env.AZURE_TENANT_ID }}
+        subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+    - name: AzCopy copy ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}} delta
+      run: | 
+        azcopy_v10 copy 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/backup-datalake-delta-weekly/${{env.MY_DATE}}/${{env.BACKUP_DEST_FOLDER}}' --recursive=true
+
+    - name: AzCopy copy ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}} delta-latest
+      run: | 
+        azcopy_v10 copy 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER_2}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/backup-datalake-delta-weekly/${{env.MY_DATE}}/${{env.BACKUP_DEST_FOLDER_2}}' --recursive=true
