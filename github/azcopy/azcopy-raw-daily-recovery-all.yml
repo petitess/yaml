@@ -3,6 +3,14 @@ name: 'azcopy raw daily recovery all'
 on:
   workflow_dispatch:
     inputs:
+      env:
+        description: Environment
+        default: dev
+        type: choice
+        options:
+          - dev
+          - qua
+          - prd
       destination: 
         default: restored-raw-files
 
@@ -12,29 +20,18 @@ permissions:
 
 env:
   AZCOPY_AUTO_LOGIN_TYPE: AZCLI
-  AZURE_CLIENT_ID: ${{ vars.CLIENT_ID_DEV }}
-  AZURE_SUBSCRIPTION_ID: ${{ vars.SUBSCRIPTION_ID_DEV }}
-  AZURE_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
   ARM_USE_OIDC: true
-  AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_DEV }}
-  AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
   BACKUP_DEST_FOLDER: "${{ inputs.destination }}/dw/raw"
+  DL_NAME: "stabcde${{ inputs.env }}weu01"
+  BACKUP_ST_NAME: "stabcde${{ inputs.env }}weu10"
+  BACKUP_SOURCE_FOLDER: "backup-datalake-raw-daily/NAV"
 
 jobs:
-  terraform_build_and_plan:
-    name: 'AzCopy raw daily'
+  az_copy_dev:
+    name: 'AzCopy raw daily (dev)'
     runs-on: [self-hosted, linux]
-    env: 
-      DL_NAME: "stabcde${{ matrix.environment }}weu01"
-      BACKUP_ST_NAME: "stabcde${{ matrix.environment }}weu10"
-      BACKUP_SOURCE_FOLDER: "backup-datalake-raw-daily/NAV"
-    strategy: 
-      fail-fast: false
-      matrix:
-          environment:
-              - dev
-              #- utv
-
+    if: ${{ inputs.env == 'dev' }}
+    
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -52,10 +49,81 @@ jobs:
     - name: Azure login
       uses: azure/login@v2
       with:
-        client-id: ${{ env.AZURE_CLIENT_ID }}
-        tenant-id: ${{ env.AZURE_TENANT_ID }}
-        subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+        client-id: ${{ vars.CLIENT_ID_DEV }}
+        tenant-id: ${{ vars.TENANT_ID_DEV }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_DEV }}
 
     - name: AzCopy copy ${{env.BACKUP_ST_NAME}} to ${{env.DL_NAME}}
+      env:
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_DEV }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
       run: | 
           azcopy_v10 copy 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER}}' 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_DEST_FOLDER}}' --recursive=true
+  
+  az_copy_qua:
+    name: 'AzCopy raw daily (qua)'
+    runs-on: [self-hosted, linux]
+    if: ${{ inputs.env == 'qua' }}
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: kheiakiyama/install-azcopy-action@v1
+      with:
+        version: 'v10'
+
+    - name: Set MY_DATE environment variable
+      run:  echo "MY_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Print MY_DATE
+      run: echo ${{ env.MY_DATE }} 
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.CLIENT_ID_QUA }}
+        tenant-id: ${{ vars.TENANT_ID_QUA }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_QUA }}
+
+    - name: AzCopy copy ${{env.BACKUP_ST_NAME}} to ${{env.DL_NAME}}
+      env:
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_QUA }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_QUA }}
+      run: | 
+          azcopy_v10 copy 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER}}' 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_DEST_FOLDER}}' --recursive=true
+
+  az_copy_prd:
+    name: 'AzCopy raw daily (prd)'
+    runs-on: [self-hosted, linux]
+    if: ${{ inputs.env == 'prd' }}
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: kheiakiyama/install-azcopy-action@v1
+      with:
+        version: 'v10'
+
+    - name: Set MY_DATE environment variable
+      run:  echo "MY_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Print MY_DATE
+      run: echo ${{ env.MY_DATE }} 
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.CLIENT_ID_PRD }}
+        tenant-id: ${{ vars.TENANT_ID_PRD }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_PRD }}
+
+    - name: AzCopy copy ${{env.BACKUP_ST_NAME}} to ${{env.DL_NAME}}
+      env:
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_PRD }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_PRD }}
+      run: | 
+          azcopy_v10 copy 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER}}' 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_DEST_FOLDER}}' --recursive=true
+
+

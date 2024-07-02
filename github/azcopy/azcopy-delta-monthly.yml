@@ -10,16 +10,11 @@ permissions:
 
 env:
   AZCOPY_AUTO_LOGIN_TYPE: AZCLI
-  AZURE_CLIENT_ID: ${{ vars.CLIENT_ID_DEV }}
-  AZURE_SUBSCRIPTION_ID: ${{ vars.SUBSCRIPTION_ID_DEV }}
-  AZURE_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
   ARM_USE_OIDC: true
-  AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_DEV }}
-  AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
 
 jobs:
-  terraform_build_and_plan:
-    name: 'AzCopy delta monthly'
+  az_copy_dev:
+    name: 'AzCopy delta monthly (dev)'
     runs-on: [self-hosted, linux]
     env: 
       DL_NAME: "stabcde${{ matrix.environment }}weu01"
@@ -33,12 +28,11 @@ jobs:
       matrix:
           environment:
               - dev
-              #- utv
 
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-
+    
     - uses: kheiakiyama/install-azcopy-action@v1
       with:
         version: 'v10'
@@ -52,14 +46,124 @@ jobs:
     - name: Azure login
       uses: azure/login@v2
       with:
-        client-id: ${{ env.AZURE_CLIENT_ID }}
-        tenant-id: ${{ env.AZURE_TENANT_ID }}
-        subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+        client-id: ${{ vars.CLIENT_ID_DEV }}
+        tenant-id: ${{ vars.TENANT_ID_DEV }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_DEV }}
 
     - name: AzCopy copy ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}} delta
+      env: 
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_DEV }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
       run: | 
         azcopy_v10 copy 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/backup-datalake-delta-monthly/${{env.MY_DATE}}/${{env.BACKUP_DEST_FOLDER}}' --recursive=true --block-blob-tier "Cold"
 
     - name: AzCopy copy ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}} delta-latest
+      env: 
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_DEV }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
+      run: | 
+        azcopy_v10 copy 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER_2}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/backup-datalake-delta-monthly/${{env.MY_DATE}}/${{env.BACKUP_DEST_FOLDER_2}}' --recursive=true --block-blob-tier "Cold"
+
+  az_copy_qua:
+    name: 'AzCopy delta monthly (qua)'
+    runs-on: [self-hosted, linux]
+    if: false
+    env: 
+      DL_NAME: "stabcde${{ matrix.environment }}weu01"
+      BACKUP_ST_NAME: "stabcde${{ matrix.environment }}weu10"
+      BACKUP_SOURCE_FOLDER: "diaccadlsfs${{ matrix.environment }}/dw/delta"
+      BACKUP_DEST_FOLDER: "diaccadlsfs${{ matrix.environment }}/dw"
+      BACKUP_SOURCE_FOLDER_2: "diaccadlsfs${{ matrix.environment }}/dw/delta_latest"
+      BACKUP_DEST_FOLDER_2: "diaccadlsfs${{ matrix.environment }}/dw"
+    strategy: 
+      fail-fast: false
+      matrix:
+          environment:
+              - qua
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - uses: kheiakiyama/install-azcopy-action@v1
+      with:
+        version: 'v10'
+
+    - name: Set MY_DATE environment variable
+      run: echo "MY_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Print MY_DATE
+      run: echo ${{ env.MY_DATE }} 
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.CLIENT_ID_QUA }}
+        tenant-id: ${{ vars.TENANT_ID_QUA }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_QUA }}
+
+    - name: AzCopy copy ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}} delta
+      env: 
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_QUA }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_QUA }}
+      run: | 
+        azcopy_v10 copy 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/backup-datalake-delta-monthly/${{env.MY_DATE}}/${{env.BACKUP_DEST_FOLDER}}' --recursive=true --block-blob-tier "Cold"
+
+    - name: AzCopy copy ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}} delta-latest
+      env: 
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_QUA }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_QUA }}
+      run: | 
+        azcopy_v10 copy 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER_2}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/backup-datalake-delta-monthly/${{env.MY_DATE}}/${{env.BACKUP_DEST_FOLDER_2}}' --recursive=true --block-blob-tier "Cold"
+
+  az_copy_pdr:
+    name: 'AzCopy delta monthly (pdr)'
+    runs-on: [self-hosted, linux]
+    if: false
+    env: 
+      DL_NAME: "stabcde${{ matrix.environment }}weu01"
+      BACKUP_ST_NAME: "stabcde${{ matrix.environment }}weu10"
+      BACKUP_SOURCE_FOLDER: "diaccadlsfs${{ matrix.environment }}/dw/delta"
+      BACKUP_DEST_FOLDER: "diaccadlsfs${{ matrix.environment }}/dw"
+      BACKUP_SOURCE_FOLDER_2: "diaccadlsfs${{ matrix.environment }}/dw/delta_latest"
+      BACKUP_DEST_FOLDER_2: "diaccadlsfs${{ matrix.environment }}/dw"
+    strategy: 
+      fail-fast: false
+      matrix:
+          environment:
+              - pdr
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - uses: kheiakiyama/install-azcopy-action@v1
+      with:
+        version: 'v10'
+
+    - name: Set MY_DATE environment variable
+      run: echo "MY_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Print MY_DATE
+      run: echo ${{ env.MY_DATE }} 
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.CLIENT_ID_PRD }}
+        tenant-id: ${{ vars.TENANT_ID_PRD }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_PRD }}
+
+    - name: AzCopy copy ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}} delta
+      env: 
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_PRD }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_PRD }}
+      run: | 
+        azcopy_v10 copy 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/backup-datalake-delta-monthly/${{env.MY_DATE}}/${{env.BACKUP_DEST_FOLDER}}' --recursive=true --block-blob-tier "Cold"
+
+    - name: AzCopy copy ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}} delta-latest
+      env: 
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_PRD }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_PRD }}
       run: | 
         azcopy_v10 copy 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER_2}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/backup-datalake-delta-monthly/${{env.MY_DATE}}/${{env.BACKUP_DEST_FOLDER_2}}' --recursive=true --block-blob-tier "Cold"
