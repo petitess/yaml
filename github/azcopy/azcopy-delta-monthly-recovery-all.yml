@@ -30,21 +30,26 @@ env:
   ARM_USE_OIDC: true
   AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_DEV }}
   AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
-  DL_NAME: "stabcsatsdevweu01"
-  BACKUP_ST_NAME: "stabcsatsdevweu10"
-  BACKUP_SOURCE_FOLDER: "diaccadlsfsdev/dw/delta"
   BACKUP_DEST_FOLDER: "${{ inputs.folder-delta-destination }}/dw"
-  BACKUP_SOURCE_FOLDER_2: "diaccadlsfsdev/dw/delta_latest"
   BACKUP_DEST_FOLDER_2: "${{ inputs.folder-delta-latest-destination }}/dw"
 
 jobs:
   terraform_build_and_plan:
     name: 'AzCopy delta monthly'
     runs-on: [self-hosted, linux]
-    #environment: dev
+    env:
+      DL_NAME: "stabcde${{ matrix.environment }}weu01"
+      BACKUP_ST_NAME: "stabcde${{ matrix.environment }}weu10"
+      BACKUP_SOURCE_FOLDER: "diaccadlsfs${{ matrix.environment }}/dw/delta"
+      BACKUP_SOURCE_FOLDER_2: "diaccadlsfs${{ matrix.environment }}/dw/delta_latest"
+    strategy: 
+      fail-fast: false
+      matrix:
+          environment:
+              - dev
+              #- utv
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v3
 
