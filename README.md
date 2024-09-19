@@ -4,6 +4,7 @@
 git clone https://github.com/ORG/azure-application-uta-westeurope.git
 cd azure-application-uta-westeurope
 git remote add upstream https://github.com/ORG/azure-application-dev-westeurope.git
+git pull upsteam main
 git config merge.ours.driver true
 git checkout main
 git checkout upstream/main -- .gitattributes
