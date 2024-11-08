@@ -1,0 +1,26 @@
+name: Monitoring
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs: 
+  monitoring: 
+    name: Monitor
+    uses: ORG/abcd-analytics-common-infra/.github/workflows/monitoring.yml@main
+  
+  get_token:
+    runs-on: ubuntu-latest
+    needs: monitoring
+    steps:
+      - run: |
+           echo ${{ needs.monitoring.outputs.firstword }}${{ needs.monitoring.outputs.secondword }}
+      
+      - name: Set MY_TOKEN environment variable
+        run:  echo "MY_TOKEN=${{ needs.monitoring.outputs.firstword }}${{ needs.monitoring.outputs.secondword }}" >> $GITHUB_ENV
+
+      - name: Print MY_TOKEN
+        run: echo ${{ env.MY_TOKEN }}
