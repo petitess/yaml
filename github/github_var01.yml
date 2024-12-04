@@ -1,0 +1,47 @@
+name: 'Save var bash & pwsh'
+
+on:
+  workflow_dispatch:
+    inputs: 
+      dev:
+        default: true
+        type: boolean
+  schedule:
+    - cron:  '0 21 1 * *'
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZCOPY_AUTO_LOGIN_TYPE: AZCLI
+  ARM_USE_OIDC: true
+
+jobs:
+  az_copy_dev:
+    if: github.event_name  == 'schedule' || inputs.dev
+    name: 'AzCopy delta monthly'
+    runs-on: [self-hosted]
+    strategy: 
+      fail-fast: false
+      matrix:
+          environment:
+              - dev
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set MY_DATE environment variable bash
+      shell: bash
+      if: false
+      run: echo "MY_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Set MY_DATE environment variable pwsh
+      shell: pwsh
+      run: |
+        $content = Get-Date -Format "yyyy-MM-dd"
+        echo MY_DATE=$content >> $env:GITHUB_ENV
+
+    - name: Print MY_DATE
+      shell: pwsh
+      run: echo ${{ env.MY_DATE }} 
