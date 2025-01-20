@@ -1,0 +1,363 @@
+name: 'Datalake Backup Raw Daily'
+
+on:
+  workflow_dispatch:
+    inputs: 
+      dev:
+        default: true
+        type: boolean
+      uat:
+        default: true
+        type: boolean
+      prd:
+        default: true
+        type: boolean
+  schedule:
+    - cron:  '0 21 * * *'
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AZCOPY_AUTO_LOGIN_TYPE: AZCLI
+  ARM_USE_OIDC: true
+
+jobs:
+  az_copy_dev:
+    if: github.event_name  == 'schedule' || inputs.dev
+    continue-on-error: true
+    name: 'AzCopy raw daily dev'
+    runs-on: [self-hosted]
+    env: 
+      DL_NAME: "stabcdesdevweu01"
+      BACKUP_ST_NAME: "stabcdesdevweu10"
+      BACKUP_SOURCE_FOLDER: "data/dw/raw"
+      BACKUP_DEST_FOLDER: "backup-datalake-raw-daily/dw/raw/"
+    strategy: 
+      fail-fast: false
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: kheiakiyama/install-azcopy-action@v1
+      with:
+        version: 'v10'
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.CLIENT_ID_DEV }}
+        tenant-id: ${{ vars.TENANT_ID_DEV }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_DEV }}
+
+    - name: AzCopy sync ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}}
+      env:
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_DEV }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_DEV }}
+      run: | 
+        azcopy_v10 sync 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/${{env.BACKUP_DEST_FOLDER}}' --recursive=true
+        
+  az_copy_uat:
+    if: github.event_name  == 'schedule' || inputs.uat
+    continue-on-error: true
+    name: 'AzCopy raw daily uat'
+    runs-on:
+      group: Default
+    env: 
+      DL_NAME: "stabcdeuprdweu01"
+      BACKUP_ST_NAME: "stabcdeuprdweu10"
+      BACKUP_SOURCE_FOLDER: "data/dw/raw"
+      BACKUP_DEST_FOLDER: "backup-datalake-raw-daily/dw/raw/"
+    strategy: 
+      fail-fast: false
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: kheiakiyama/install-azcopy-action@v1
+      with:
+        version: 'v10'
+
+    - name: Install Az
+      env:
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_UAT }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_UAT }}
+      run: | 
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.CLIENT_ID_UAT }}
+        tenant-id: ${{ vars.TENANT_ID_UAT }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_UAT }}
+
+    - name: "Modify hosts file"
+      run: | 
+        sudo echo '10.35.1.197 stabcdeuprdweu01.blob.core.windows.net' | sudo tee -a /etc/hosts
+        sudo echo '10.35.1.198 stabcdeuprdweu10.blob.core.windows.net' | sudo tee -a /etc/hosts
+        cat /etc/hosts
+        nslookup stabcdeuprdweu01.blob.core.windows.net
+        nslookup stabcdesprdweu01.blob.core.windows.net
+
+    - name: AzCopy sync ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}}
+      env:
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_UAT }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_UAT }}
+      run: | 
+        azcopy_v10 sync 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/${{env.BACKUP_DEST_FOLDER}}' --recursive=true 
+
+  az_copy_prd:
+    if: github.event_name  == 'schedule' || inputs.prd
+    name: 'AzCopy raw daily prd'
+    runs-on: [self-hosted]
+    env: 
+      DL_NAME: "stabcdesprdweu01"
+      BACKUP_ST_NAME: "stabcdesprdweu10"
+      BACKUP_SOURCE_FOLDER: "data/dw/raw"
+      BACKUP_DEST_FOLDER: "backup-datalake-raw-daily/dw/raw/"
+    strategy: 
+      fail-fast: false
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: kheiakiyama/install-azcopy-action@v1
+      with:
+        version: 'v10'
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ vars.CLIENT_ID_PRD }}
+        tenant-id: ${{ vars.TENANT_ID_PRD }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_PRD }}
+
+    - name: AzCopy sync ${{env.DL_NAME}} to ${{env.BACKUP_ST_NAME}}
+      env:
+        AZCOPY_SPA_APPLICATION_ID: ${{ vars.CLIENT_ID_PRD }}
+        AZCOPY_TENANT_ID: ${{ vars.TENANT_ID_PRD }}
+      run: | 
+        azcopy_v10 sync 'https://${{env.DL_NAME}}.blob.core.windows.net/${{env.BACKUP_SOURCE_FOLDER}}' 'https://${{env.BACKUP_ST_NAME}}.blob.core.windows.net/${{env.BACKUP_DEST_FOLDER}}' --recursive=true
+
+  az_compare:
+    if: always()
+    name: 'Compare files'
+    runs-on: [self-hosted]
+    needs: [ az_copy_uat, az_copy_dev, az_copy_prd ]
+    outputs:
+      FileVerificationSuccessfulDev: "${{steps.compare_dev.outputs.RESULT}}"
+      FileVerificationSuccessfulUat: "${{steps.compare_uat.outputs.RESULT}}"
+      FileVerificationSuccessfulPrd: "${{steps.compare_prd.outputs.RESULT}}"
+        
+    strategy: 
+      fail-fast: false
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Azure login dev
+      uses: azure/login@v2
+      if: needs.az_copy_dev.result == 'success'
+      with:
+        client-id: ${{ vars.CLIENT_ID_DEV }}
+        tenant-id: ${{ vars.TENANT_ID_DEV }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_DEV }}
+
+    - name: Compare hash dev
+      id: compare_dev
+      if: needs.az_copy_dev.result == 'success'
+      continue-on-error: true
+      shell: pwsh
+      run: | 
+        New-Item -Name "datalake" -ItemType Directory -Force
+        New-Item -Name "backup" -ItemType Directory -Force
+
+        $Blobs = az storage fs file list --account-name "stabcdesdevweu01" --file-system "data" --path "dw/raw" --auth-mode login `
+        | ConvertFrom-Json | Where-Object {$_.contentLength -lt 50208933 -and $_.contentLength -gt 100} `
+        | Sort-Object LastModified -Top 10 -Descending
+
+        $Count = 0
+
+        $Blobs | ForEach-Object {
+            Write-Output $_.name
+            az storage fs file download --account-name "stabcdesdevweu01" --file-system "data" --path $_.name --auth-mode login --destination "datalake"
+            az storage fs file download --account-name "stabcdesdevweu10" --file-system "backup-datalake-raw-daily" --path $_.name --auth-mode login --destination "backup"
+            $Count ++
+        }
+        Write-Output "Count: $Count" 
+
+        $Datalake = @{} 
+        $Backup = @{}
+
+        $LakeFiles = Get-ChildItem -Path "datalake" 
+        $LakeFiles | ForEach-Object {
+            $Hash = Get-FileHash -Path "datalake\$($_.Name)"
+            $Datalake.Add($_.Name,$Hash.Hash)
+        }
+
+        $BackupFiles = Get-ChildItem -Path "backup"
+        $BackupFiles | ForEach-Object {
+            $Hash = Get-FileHash -Path "backup\$($_.Name)"
+            $Backup.Add($_.Name,$Hash.Hash)
+        }
+
+        Remove-Item -Path "datalake" -Force -Recurse -Confirm:$false
+        Remove-Item -Path "backup" -Force -Recurse -Confirm:$false
+
+        $Result = ($Backup | ConvertTo-Json).Equals(($Datalake | ConvertTo-Json))
+
+        Write-Output "Data Lake:"
+        $Datalake | ConvertTo-Json
+        Write-Output "Backup:"
+        $Backup | ConvertTo-Json
+        Write-Output "Result: $Result"
+        "RESULT=$Result" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+    - name: Azure login uat
+      uses: azure/login@v2
+      if: needs.az_copy_uat.result == 'success'
+      with:
+        client-id: ${{ vars.CLIENT_ID_UAT }}
+        tenant-id: ${{ vars.TENANT_ID_UAT }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_UAT }}
+
+    - name: Compare hash uat
+      id: compare_uat
+      if: needs.az_copy_uat.result == 'success'
+      continue-on-error: true
+      shell: pwsh
+      run: | 
+        New-Item -Name "datalake" -ItemType Directory -Force
+        New-Item -Name "backup" -ItemType Directory -Force
+
+        $Blobs = az storage fs file list --account-name "stabcdeuprdweu01" --file-system "data" --path "dw/raw" --auth-mode login `
+        | ConvertFrom-Json | Where-Object {$_.contentLength -lt 50208933 -and $_.contentLength -gt 100} `
+        | Sort-Object LastModified -Top 10 -Descending
+
+        $Count = 0
+
+        $Blobs | ForEach-Object {
+            Write-Output $_.name
+            az storage fs file download --account-name "stabcdeuprdweu01" --file-system "data" --path $_.name --auth-mode login --destination "datalake"
+            az storage fs file download --account-name "stabcdeuprdweu10" --file-system "backup-datalake-raw-daily" --path $_.name --auth-mode login --destination "backup"
+            $Count ++
+        }
+        Write-Output "Count: $Count" 
+
+        $Datalake = @{} 
+        $Backup = @{}
+
+        $LakeFiles = Get-ChildItem -Path "datalake" 
+        $LakeFiles | ForEach-Object {
+            $Hash = Get-FileHash -Path "datalake\$($_.Name)"
+            $Datalake.Add($_.Name,$Hash.Hash)
+        }
+
+        $BackupFiles = Get-ChildItem -Path "backup"
+        $BackupFiles | ForEach-Object {
+            $Hash = Get-FileHash -Path "backup\$($_.Name)"
+            $Backup.Add($_.Name,$Hash.Hash)
+        }
+
+        Remove-Item -Path "datalake" -Force -Recurse -Confirm:$false
+        Remove-Item -Path "backup" -Force -Recurse -Confirm:$false
+
+        $Result = ($Backup | ConvertTo-Json).Equals(($Datalake | ConvertTo-Json))
+
+        Write-Output "Data Lake:"
+        $Datalake | ConvertTo-Json
+        Write-Output "Backup:"
+        $Backup | ConvertTo-Json
+        Write-Output "Result: $Result"
+        "RESULT=$Result" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+    
+    - name: Azure login prd
+      uses: azure/login@v2
+      if: needs.az_copy_prd.result == 'success'
+      with:
+        client-id: ${{ vars.CLIENT_ID_PRD }}
+        tenant-id: ${{ vars.TENANT_ID_PRD }}
+        subscription-id: ${{ vars.SUBSCRIPTION_ID_PRD }}
+
+    - name: Compare hash prd
+      id: compare_prd
+      if: needs.az_copy_prd.result == 'success'
+      continue-on-error: true
+      shell: pwsh
+      run: | 
+        New-Item -Name "datalake" -ItemType Directory -Force
+        New-Item -Name "backup" -ItemType Directory -Force
+
+        $Blobs = az storage fs file list --account-name "stabcdesprdweu01" --file-system "data" --path "dw/raw" --auth-mode login `
+        | ConvertFrom-Json | Where-Object {$_.contentLength -lt 50208933 -and $_.contentLength -gt 100} `
+        | Sort-Object LastModified -Top 10 -Descending
+
+        $Count = 0
+
+        $Blobs | ForEach-Object {
+            Write-Output $_.name
+            az storage fs file download --account-name "stabcdesprdweu01" --file-system "data" --path $_.name --auth-mode login --destination "datalake"
+            az storage fs file download --account-name "stabcdesprdweu10" --file-system "backup-datalake-raw-daily" --path $_.name --auth-mode login --destination "backup"
+            $Count ++
+        }
+        Write-Output "Count: $Count" 
+
+        $Datalake = @{} 
+        $Backup = @{}
+
+        $LakeFiles = Get-ChildItem -Path "datalake" 
+        $LakeFiles | ForEach-Object {
+            $Hash = Get-FileHash -Path "datalake\$($_.Name)"
+            $Datalake.Add($_.Name,$Hash.Hash)
+        }
+
+        $BackupFiles = Get-ChildItem -Path "backup"
+        $BackupFiles | ForEach-Object {
+            $Hash = Get-FileHash -Path "backup\$($_.Name)"
+            $Backup.Add($_.Name,$Hash.Hash)
+        }
+
+        Remove-Item -Path "datalake" -Force -Recurse -Confirm:$false
+        Remove-Item -Path "backup" -Force -Recurse -Confirm:$false
+
+        $Result = ($Backup | ConvertTo-Json).Equals(($Datalake | ConvertTo-Json))
+
+        Write-Output "Data Lake:"
+        $Datalake | ConvertTo-Json
+        Write-Output "Backup:"
+        $Backup | ConvertTo-Json
+        Write-Output "Result: $Result"
+        "RESULT=$Result" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+  send_logs:
+    name: 'Send logs'
+    needs: [az_copy_dev, az_copy_uat, az_copy_prd]
+    if: always() 
+    uses: ABCD-APPLICATIONS/abcd-analytics-common-infra/.github/workflows/monitoring.yml@main
+    with:
+      repo_url: "${{ github.event.repository.html_url }}"
+      repo_name: "${{ github.event.repository.name }}"
+      result: "${{ toJson(needs) }}"
+      workflow_name: "${{ github.workflow }}"
+      workflow_event: "${{ github.event_name }}"
+      workflow_path: "${{ github.event.workflow }}"
+      repo_workflow_name: "${{ github.event.repository.name }} - ${{ github.workflow }}"
+
+  send_logs_ver:
+    name: 'Send logs verfication'
+    needs: [az_compare]
+    if: always() 
+    uses: ABCD-APPLICATIONS/abcd-analytics-common-infra/.github/workflows/monitoring.yml@main
+    with:
+      repo_url: "${{ github.event.repository.html_url }}"
+      repo_name: "${{ github.event.repository.name }}"
+      result: "${{ toJson(needs.az_compare.outputs) }}"
+      workflow_name: "${{ github.workflow }}"
+      workflow_event: "${{ github.event_name }}"
+      workflow_path: "${{ github.event.workflow }}"
+      repo_workflow_name: "${{ github.event.repository.name }} - ${{ github.workflow }}"
+
