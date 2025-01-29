@@ -52,3 +52,40 @@ gitGraph
        merge release/prod tag:"PR"
 
 ```
+## Devops Agent - Build An Image Using Service Principal
+```powershell
+cd .\Documents\
+git clone https://github.com/actions/runner-images.git
+cd .\runner-images\
+Import-Module .\helpers\GenerateResourcesAndImage.ps1
+
+#Windows
+.\helpers\GenerateResourcesAndImage.ps1; GenerateResourcesAndImage `
+-SubscriptionId '123abc' `
+-ResourceGroupName 'rg-infra-image-prod-01' `
+-ImageType 'Windows2022' `
+-ManagedImageName ("image-agent-windows-$(Get-Date -Format "yyyy-MM-dd")").ToLower() `
+-AzureLocation 'westeurope' `
+-AzureClientId "123abc" `
+-AzureClientSecret "123abc" `
+-ImageGenerationRepositoryRoot $pwd `
+-SecondsToWaitForServicePrincipalSetup 120 `
+-AzureTenantId "123abc" `
+-OnError "ask" `
+-Tags @{}
+
+#Linux 2024
+.\helpers\GenerateResourcesAndImage.ps1; GenerateResourcesAndImage `
+-SubscriptionId '123abc' `
+-ResourceGroupName 'rg-infra-image-prod-01' `
+-ImageType 'Ubuntu2404' `
+-ManagedImageName ("image-agent-linux24-$(Get-Date -Format "yyyy-MM-dd")").ToLower() `
+-AzureLocation 'westeurope' `
+-AzureClientId "123abc" `
+-AzureClientSecret "123abc" `
+-ImageGenerationRepositoryRoot $pwd `
+-SecondsToWaitForServicePrincipalSetup 120 `
+-AzureTenantId "123abc" `
+-OnError "ask" `
+-Tags @{}
+```
