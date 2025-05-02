@@ -1,7 +1,7 @@
 #trigger: none
 
 pool:
-  vmImage: ubuntu-22.04
+  vmImage: ubuntu-24.04
 
 parameters:
   - name: subscriptions
@@ -24,6 +24,17 @@ stages:
                 deploy:
                   steps:
                     - checkout: self
+                    - task: PowerShell@2
+                      name: bicep
+                      displayName: install bicep
+                      inputs:
+                        targetType: 'inline'
+                        script: |
+                          mkdir /home/vsts/work/_temp/.azclitask
+                          mkdir /home/vsts/work/_temp/.azclitask/bin
+                          curl -Lo /home/vsts/work/_temp/.azclitask/bin/bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+                          chmod +x /home/vsts/work/_temp/.azclitask/bin/bicep
+                          
                     - task: AzureCLI@2
                       displayName: Create deployment
                       inputs:
