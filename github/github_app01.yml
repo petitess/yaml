@@ -1,0 +1,168 @@
+name: Update Power Bi Api
+
+on:
+  workflow_dispatch:
+    inputs:
+       dev: 
+        default: true
+        type: boolean
+       uat: 
+        default: false
+        type: boolean
+       prd: 
+        default: false
+        type: boolean
+       update_powerbiapirefresh:
+        default: 'secret1'
+        type: choice
+        options:
+          - 'false'
+          - secret1
+          - secret2
+          - client_id
+
+  schedule:
+    - cron:  '00 21 1 1,3,5,7,9,11 *'
+    - cron:  '00 21 1 2,4,6,8,10,12 *'
+
+permissions:
+  id-token: write
+  contents: write
+
+env:
+  ARM_USE_OIDC: true
+
+jobs:
+  secret-rotator-dev:
+    runs-on: [self-hosted, Windows]
+    if: inputs.dev && inputs.update_powerbiapirefresh != 'false' || github.event_name  == 'schedule'
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: ${{github.workspace}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login dev
+        uses: azure/login@v2 
+        with:
+          client-id: ${{ vars.SECRET_ROTATOR_CLIENT_ID_DEV }}
+          tenant-id: ${{ vars.TENANT_ID_DEV }}
+          subscription-id: ${{ vars.SUBSCRIPTION_ID_DEV }}
+
+      - name: Authenticate Github App
+        id: gh_token
+        run: | 
+            $client_id = "${{ vars.GH_APP_CLIENT_ID }}"
+            $private_key = "${{ secrets.GH_APP_PRIVATE_KEY }}"
+
+            # Create JWT header
+            $header = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((ConvertTo-Json -Compress -InputObject @{
+                alg = "RS256"
+                typ = "JWT"
+            }))).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+
+            # Create JWT payload
+            $payload = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes((ConvertTo-Json -Compress -InputObject @{
+                iat = [System.DateTimeOffset]::UtcNow.AddSeconds(-10).ToUnixTimeSeconds()
+                exp = [System.DateTimeOffset]::UtcNow.AddMinutes(10).ToUnixTimeSeconds()
+                iss = $client_id
+            }))).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+
+            # Create RSA object and import private key
+            $rsa = [System.Security.Cryptography.RSA]::Create()
+            $rsa.ImportFromPem($private_key)
+
+            # Sign the JWT
+            $signature = [Convert]::ToBase64String($rsa.SignData([System.Text.Encoding]::UTF8.GetBytes("$header.$payload"), [System.Security.Cryptography.HashAlgorithmName]::SHA256, [System.Security.Cryptography.RSASignaturePadding]::Pkcs1)).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+            $jwt = "$header.$payload.$signature"
+            Write-Output "Generated JWT: $jwt"
+
+            # Get installation ID
+            $headers = @{
+                "Authorization"        = "Bearer $jwt"
+                "Accept"               = "application/vnd.github+json"
+                "X-GitHub-Api-Version" = "2022-11-28"
+            }
+            $installations = Invoke-RestMethod -Method Get -Uri "https://api.github.com/app/installations" -Headers $headers
+            $installation_id = $installations[0].id
+            Write-Output "Installation ID: $installation_id"
+
+            # Get access token
+            $headers = @{
+                "Authorization"        = "Bearer $jwt"
+                "Accept"               = "application/vnd.github+json"
+                "X-GitHub-Api-Version" = "2022-11-28"
+            }
+            $response = Invoke-RestMethod -Method Post -Uri "https://api.github.com/app/installations/$installation_id/access_tokens" -Headers $headers
+            $access_token = $response.token
+            Write-Output "Access Token: $access_token"
+
+            # Output the token as a GitHub Action output
+            Write-Output "::set-output name=access_token::$access_token"
+            $Env:GH_TOKEN = $access_token
+            "TOKEN=$access_token" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: 'SP-abcd-efgh-analytics-dev-westeurope-powerbi-api-refresh 1 remove old'
+        if: inputs.update_powerbiapirefresh == 'secret1' || github.event.schedule == '00 21 1 1,3,5,7,9,11 *'
+        run: | 
+          $appName = 'SP-abcd-efgh-analytics-dev-westeurope-powerbi-api-refresh'
+          $secretName = 'powerbirefresh-1'
+          Write-Output "Removing $secretName"
+          $appId = az ad app list --all --query "[?displayName=='$appName'].appId" --output tsv
+          $secretIds = az ad app credential list --id $appId --query "[?displayName=='$secretName'].keyId" --output tsv
+          $secretIds | ForEach-Object {
+              az ad app credential delete --id $appId --key-id $_
+          }
+              
+      - name: 'SP-abcd-efgh-analytics-dev-westeurope-powerbi-api-refresh 2 remove old'
+        if: inputs.update_powerbiapirefresh == 'secret2' || github.event.schedule == '00 21 1 2,4,6,8,10,12 *'
+        run: | 
+            $appName = 'SP-abcd-efgh-analytics-dev-westeurope-powerbi-api-refresh'
+            $secretName = 'powerbirefresh-2'
+            Write-Output "Removing $secretName"
+            $appId = az ad app list --all --query "[?displayName=='$appName'].appId" --output tsv
+            $secretIds = az ad app credential list --id $appId --query "[?displayName=='$secretName'].keyId" --output tsv
+            $secretIds | ForEach-Object {
+                az ad app credential delete --id $appId --key-id $_
+            }
+            
+      - name: 'SP-abcd-efgh-analytics-dev-westeurope-powerbi-api-refresh 1 add new'
+        if: inputs.update_powerbiapirefresh == 'secret1'|| github.event.schedule == '00 21 1 1,3,5,7,9,11 *'
+        env:
+          GH_TOKEN: "${{steps.gh_token.outputs.TOKEN}}"
+        run: |
+          $appName = 'SP-abcd-efgh-analytics-dev-westeurope-powerbi-api-refresh'
+          $secretName = 'powerbirefresh-1'
+          $appId = az ad app list --all --query "[?displayName=='$appName'].appId" --output tsv
+          $secret = az ad app credential reset --id $appId --display-name $secretName --query password --output tsv --append
+          $kvName = 'kvsgsatsdevweu01'
+          az keyvault secret set --name 'powerbirefresh' --vault-name $kvName --value $secret --content-type "updated: $(Get-Date -Format "dd-MM-yyyy hh:mm") by secret rotator" 
+          gh secret set POWERBIAPI_SECRET_DEV --body $secret --repo 045-SGEC-APPLICATIONS/sgds-analytics-powerbi
+
+      - name: 'SP-abcd-efgh-analytics-dev-westeurope-powerbi-api-refresh 2 add new'
+        if: inputs.update_powerbiapirefresh == 'secret2' || github.event.schedule == '00 21 1 2,4,6,8,10,12 *'
+        env:
+          GH_TOKEN: "${{steps.gh_token.outputs.TOKEN}}"
+        run: | 
+          $appName = 'SP-abcd-efgh-analytics-dev-westeurope-powerbi-api-refresh'
+          $secretName = 'powerbirefresh-2'
+          $appId = az ad app list --all --query "[?displayName=='$appName'].appId" --output tsv
+          $secret = az ad app credential reset --id $appId --display-name $secretName --query password --output tsv --append
+          $kvName = 'kvsgsatsdevweu01'
+          az keyvault secret set --name 'powerbirefresh' --vault-name $kvName --value $secret --content-type "updated: $(Get-Date -Format "dd-MM-yyyy hh:mm") by secret rotator"
+          gh secret set POWERBIAPI_SECRET_DEV --body $secret --repo 045-SGEC-APPLICATIONS/sgds-analytics-powerbi
+
+      - name: 'SP-abcd-efgh-analytics-dev-westeurope-powerbi-api-refresh client id'
+        if: github.event_name != 'schedule' && inputs.update_powerbiapirefresh == 'client_id'
+        env:
+          GH_TOKEN: "${{steps.gh_token.outputs.TOKEN}}"
+        run: |
+            $appName = 'SP-abcd-efgh-analytics-dev-westeurope-powerbi-api-refresh'
+            $secretName = 'powerbirefresh-clientid'
+            $appId = az ad app list --all --query "[?displayName=='$appName'].appId" --output tsv
+            $kvName = 'kvsgsatsdevweu01'
+            az keyvault secret set --name $secretName --vault-name $kvName --value $appId --content-type "updated: $(Get-Date -Format "dd-MM-yyyy hh:mm") by secret rotator"
+            gh variable set POWERBIAPI_CLIENTID_DEV --body $appId --repo 045-SGEC-APPLICATIONS/sgds-analytics-powerbi
