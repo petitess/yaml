@@ -1,7 +1,7 @@
 trigger: none
 
 pool:
-  vmImage: ubuntu-22.04
+  vmImage: ubuntu-latest
   name: vmmgmtX
 
 parameters:
@@ -48,7 +48,7 @@ stages:
                           azureSubscription: sp-subscriptions-01
                           scriptType: pscore
                           scriptPath: script/script01.ps1
-                          arguments: ${{ subscription }} ${{ parameters.devopsProjectName }} ${{ parameters.mgName }}
+                          arguments: ${{ subscription }} ${{ parameters.devopsProjectName }} ${{ parameters.mgName }} $(billingAccounts) $(billingProfile) $(invoiceSections)
 
       - ${{ each group in parameters.teamGroups }}:
         - ${{ if ne(group, 'dont-create-groups') }}:

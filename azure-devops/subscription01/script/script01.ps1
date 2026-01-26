@@ -9,44 +9,82 @@ param (
 
     [Parameter(Mandatory)]
     [Alias('Management Group Id')]
-    [String]$MgName
+    [String]$MgName,
+
+    [Parameter(Mandatory)]
+    [Alias('Billing Account Id')]
+    [String]$billingAccounts,
+
+    [Parameter(Mandatory)]
+    [Alias('Billing Profile')]
+    [String]$billingProfile,
+
+    [Parameter(Mandatory)]
+    [Alias('Invoice Section')]
+    [String]$invoiceSections
 )
 
-$billingAccounts = 'x-e666-4fd2-b303-98219d087695_2019-05-31'
-$billingProfile = 'X-PGB'
-$invoiceSections = 'X-PGB'
+if ($null -eq $billingAccounts -or $null -eq $billingProfile -or $null -eq $invoiceSections) {
+    Write-Error "Billing information environment variables are not set."
+    exit 1
+}
+"billingAccounts: $($billingAccounts.Substring(0,10))"
+"billingProfile: $($billingProfile.Substring(0,10))"
+"invoiceSections: $($invoiceSections.Substring(0,10))"
 $billingScope = "/providers/Microsoft.Billing/billingAccounts/$billingAccounts/billingProfiles/$billingProfile/invoiceSections/$invoiceSections"
 $rbac = "Owner"
 $devopsOrg = "https://dev.azure.com/ABCse"
 $devopsOrgName = "ABCse"
 $projectId = az devops project show --project $DevopsProjectName --query "id" --output tsv
+"projectId: $projectId"
 $tenantID = az account show --query "tenantId" -o tsv
-$issuer = "https://vstoken.dev.azure.com/X-c6832fa0baa0"
+"tenantID: $tenantID"
+$issuer = "https://vstoken.dev.azure.com/20a69f6e-823d-4a0d-9191-c6832fa0baa0"
 $token = az account get-access-token --query accessToken --output tsv
+if (!$token) {
+    Write-Error "Failed to acquire access token."
+    exit 1
+}
+"token: $($token.Substring(1,20))"
 
 if ($SubName -ne 'dont-create-subscriptions') {
     #Create subscriptions
     if ($SubName -match "-prod-") {
-        az account alias create --name $SubName --billing-scope $billingScope --display-name $SubName --workload 'Production' -o table
+        $Alias = az account alias create --name $SubName --billing-scope $billingScope --display-name $SubName --workload 'Production' -o tsv
+        "Created Production alias $Alias"
     }
     else {
-        az account alias create --name $SubName --billing-scope $billingScope --display-name $SubName --workload 'DevTest' -o table
+        $Alias = az account alias create --name $SubName --billing-scope $billingScope --display-name $SubName --workload 'DevTest' -o tsv
+        "Created DevTest alias $Alias"
     }
 
     $spiname = ($SubName).Replace('sub', 'sp')
+    $spiname
 
     # Create Service Principal
     $appId = az ad app create --display-name $spiname --query "appId" -o tsv
+    "appId: $appId"
 
     if (!(az ad sp show --id $appId)) {
-        az ad sp create --id $appId
+        az ad sp create --id $appId -o tsv --query "id"
+        "Created Service Principal for appId: $appId"
     }
     # Assign the Service Principal, "Contributor" RBAC on Subscription Level:-
-    $newSub = az account alias show --name $SubName --query "properties.subscriptionId" -o tsv
+    #Stopped working:
+    # $newSub = az account alias show --name $SubName --query "properties.subscriptionId" -o tsv
+    $newSub =az account subscription list --query "[?state=='Enabled' && displayName=='$SubName'].subscriptionId" -o tsv
+    if (!$newSub) {
+        Write-Error "Failed to retrieve subscription ID for $SubName."
+        exit 1
+    }
+    "newSub: $newSub"
+
     az role assignment create --assignee "$appId" --role "$rbac" --scope "/subscriptions/$newSub" -o table
+    "Assigned $rbac role to $appId on subscription $newSub "
 
     # Set Default DevOps Organisation and Project:-
     az devops configure --defaults organization=$devopsOrg project=$DevopsProjectName -o table
+    "Set default DevOps organization to $devopsOrg and project to $DevopsProjectName"
 
     #Add subscriptions to management group
     ##az account management-group subscription add --name "mg-landingzones-01" --subscription $newSub -o table
@@ -58,13 +96,25 @@ if ($SubName -ne 'dont-create-subscriptions') {
         Write-Output "Federated credentials exist"
     }
     else {
-        az ad app federated-credential create --id $appId --parameters `
-            "{\""name\"": \""devops\"", \""issuer\"": \""$issuer\"", \""subject\"": \""sc://$devopsOrgName/$DevopsProjectName/$spiname\"", \""audiences\"": [\""api://AzureADTokenExchange\""]}" -o table
+        #OLD
+        # az ad app federated-credential create --id $appId --parameters `
+        #     "{\""name\"": \""devops\"", \""issuer\"": \""$issuer\"", \""subject\"": \""sc://$devopsOrgName/$DevopsProjectName/$spiname\"", \""audiences\"": [\""api://AzureADTokenExchange\""]}" -o table
+        #NEW
+        az ad app federated-credential create --id $appId -o table --parameters @"
+    {
+        "name": "devops",
+        "issuer": "$issuer",
+        "subject": "sc://$devopsOrgName/$DevopsProjectName/$spiname",
+        "audiences": ["api://AzureADTokenExchange"]
+    }
+"@ 
     }
 
     # Update DevOps Service Connection with Federated Credentials:-
     $serviceEndpointId = az devops service-endpoint list --org $devopsOrg --project $DevopsProjectName --query "[?name=='$spiname'].id" -o tsv
+    "serviceEndpointId: $serviceEndpointId"
     $authorization = az devops service-endpoint list --org $devopsOrg --project $DevopsProjectName --query "[?name=='$spiname'].authorization.scheme" -o tsv
+    "authorization: $authorization"
     if ($serviceEndpointId) {
         Write-Output "Found service endpoint: $serviceEndpointId"
         if ($authorization -notmatch "WorkloadIdentityFederation") {
@@ -86,6 +136,7 @@ if ($SubName -ne 'dont-create-subscriptions') {
                 )
             }
             Invoke-RestMethod  -Method PUT -Uri $uri  -Headers @{ Authorization = "Bearer $token"; "Content-Type" = "application/json" } -Body $body
+            "Updated service endpoint to Workload Identity Federation"
         }
     }
     else {
@@ -118,8 +169,8 @@ if ($SubName -ne 'dont-create-subscriptions') {
                 }
             )
         }
-    
         Invoke-RestMethod  -Method POST -Uri $uri -Headers @{ Authorization = "Bearer $token"; "Content-Type" = "application/json" } -Body $body
+        "Created service endpoint with Workload Identity Federation"
     }
 
     # #Add subscriptions to management group
@@ -141,7 +192,7 @@ if ($SubName -ne 'dont-create-subscriptions') {
         --name "run-MoveToNewManagementGroup01" `
         --parameters SUBNAME=$SubName NEWMG=$MgName `
         --resource-group "rg-infra-mgmt-prod-we-01" `
-        --subscription "X-d700d0bc3e66"
+        --subscription "d7909d2e-2a55-4c2f-b005-d700d0bc3e66"
 }
 else {
     Write-Output "Skipped creation of subscription"
