@@ -35,11 +35,10 @@ $billingScope = "/providers/Microsoft.Billing/billingAccounts/$billingAccounts/b
 $rbac = "Owner"
 $devopsOrg = "https://dev.azure.com/ABCse"
 $devopsOrgName = "ABCse"
-$projectId = az devops project show --project $DevopsProjectName --query "id" --output tsv
+$projectId = az devops project show --project $DevopsProjectName --org $devopsOrg --query "id" --output tsv
 "projectId: $projectId"
 $tenantID = az account show --query "tenantId" -o tsv
 "tenantID: $tenantID"
-$issuer = "https://vstoken.dev.azure.com/20a69f6e-823d-4a0d-9191-c6832fa0baa0"
 $token = az account get-access-token --query accessToken --output tsv
 if (!$token) {
     Write-Error "Failed to acquire access token."
@@ -63,7 +62,9 @@ if ($SubName -ne 'dont-create-subscriptions') {
 
     # Create Service Principal
     $appId = az ad app create --display-name $spiname --query "appId" -o tsv
+
     "appId: $appId"
+    "ObjectId: $ObjectId"
 
     if (!(az ad sp show --id $appId)) {
         az ad sp create --id $appId -o tsv --query "id"
@@ -72,7 +73,7 @@ if ($SubName -ne 'dont-create-subscriptions') {
     # Assign the Service Principal, "Contributor" RBAC on Subscription Level:-
     #Stopped working:
     # $newSub = az account alias show --name $SubName --query "properties.subscriptionId" -o tsv
-    $newSub =az account subscription list --query "[?state=='Enabled' && displayName=='$SubName'].subscriptionId" -o tsv
+    $newSub = az account subscription list --query "[?state=='Enabled' && displayName=='$SubName'].subscriptionId" -o tsv
     if (!$newSub) {
         Write-Error "Failed to retrieve subscription ID for $SubName."
         exit 1
@@ -89,26 +90,6 @@ if ($SubName -ne 'dont-create-subscriptions') {
     #Add subscriptions to management group
     ##az account management-group subscription add --name "mg-landingzones-01" --subscription $newSub -o table
     ##az account management-group subscription show-sub-under-mg --name "mg-landingzones-01" --query "[?displayName=='$SubName'].{subName: displayName, mgName:'mg-landingzones-01'}" -o table 
-
-    $app = az ad app federated-credential list --id $appId --query "[?name=='devops'].id" -o tsv
-
-    if ($app) {
-        Write-Output "Federated credentials exist"
-    }
-    else {
-        #OLD
-        # az ad app federated-credential create --id $appId --parameters `
-        #     "{\""name\"": \""devops\"", \""issuer\"": \""$issuer\"", \""subject\"": \""sc://$devopsOrgName/$DevopsProjectName/$spiname\"", \""audiences\"": [\""api://AzureADTokenExchange\""]}" -o table
-        #NEW
-        az ad app federated-credential create --id $appId -o table --parameters @"
-    {
-        "name": "devops",
-        "issuer": "$issuer",
-        "subject": "sc://$devopsOrgName/$DevopsProjectName/$spiname",
-        "audiences": ["api://AzureADTokenExchange"]
-    }
-"@ 
-    }
 
     # Update DevOps Service Connection with Federated Credentials:-
     $serviceEndpointId = az devops service-endpoint list --org $devopsOrg --project $DevopsProjectName --query "[?name=='$spiname'].id" -o tsv
@@ -140,7 +121,6 @@ if ($SubName -ne 'dont-create-subscriptions') {
         }
     }
     else {
-        # Create DevOps Service Connection with Federated Credentials:-
         Write-Output "Creating service endpoint"
         $uri = "https://dev.azure.com/$devopsOrgName/$DevopsProjectName/_apis/serviceendpoint/endpoints?api-version=7.1-preview.4"
         $body = ConvertTo-Json -Depth 10 @{
@@ -169,8 +149,36 @@ if ($SubName -ne 'dont-create-subscriptions') {
                 }
             )
         }
-        Invoke-RestMethod  -Method POST -Uri $uri -Headers @{ Authorization = "Bearer $token"; "Content-Type" = "application/json" } -Body $body
+        $NewSe = Invoke-RestMethod  -Method POST -Uri $uri -Headers @{ Authorization = "Bearer $token"; "Content-Type" = "application/json" } -Body $body
+        $Issuer = $NewSe.authorization.parameters.workloadIdentityFederationIssuer 
+        $Subject = $NewSe.authorization.parameters.workloadIdentityFederationSubject 
         "Created service endpoint with Workload Identity Federation"
+    }
+
+    $app = az ad app federated-credential list --id $appId --query "[?name=='devops'].id" -o tsv
+
+    if ($app) {
+        Write-Output "Federated credentials exist"
+    }
+    else {
+        $url = "https://graph.microsoft.com/v1.0/applications?`$filter=appId eq '$appId'"
+        $headers = "Content-type=application/json"
+        $ObjectId = az rest --method get --uri $url --headers $headers --query "value[0].id" -o tsv
+        if (!$ObjectId) {
+            Write-Error "Failed to retrieve Object ID for appId: $appId."
+            exit 1
+        }
+
+        $FedParameters = @{
+            name      = "devops"
+            issuer    = "$Issuer"
+            subject   = "$Subject"
+            audiences = @("api://AzureADTokenExchange")
+        } | ConvertTo-Json -Depth 10
+        # az ad app federated-credential create --id $appId --parameters $FedParameters
+        $url = "https://graph.microsoft.com/v1.0/applications/$ObjectId/federatedIdentityCredentials"
+        $headers = "Content-type=application/json"
+        $FedParameters | az rest --method post --uri $url --headers $headers --body '@-'
     }
 
     # #Add subscriptions to management group
@@ -192,7 +200,7 @@ if ($SubName -ne 'dont-create-subscriptions') {
         --name "run-MoveToNewManagementGroup01" `
         --parameters SUBNAME=$SubName NEWMG=$MgName `
         --resource-group "rg-infra-mgmt-prod-we-01" `
-        --subscription "d7909d2e-2a55-4c2f-b005-d700d0bc3e66"
+        --subscription "xyz"
 }
 else {
     Write-Output "Skipped creation of subscription"
