@@ -67,14 +67,14 @@ jobs:
         shell: pwsh
         run: |
           Get-ChildItem
-          New-Item -ItemType Directory -Name "ZIP-FOLDER" -Path "../"
-          Compress-Archive -Path ./* -DestinationPath ../ZIP-FOLDER/release-test.zip
+          New-Item -ItemType Directory -Name "ZIP-PACKED" -Path "../"
+          Compress-Archive -Path ./* -DestinationPath ../ZIP-PACKED/release-test.zip
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: ./ZIP-FOLDER/release-test.zip
+          path: ./ZIP-PACKED/release-test.zip
 
   func_deploy_dev:
     name: 'Func Deploy to Dev'
