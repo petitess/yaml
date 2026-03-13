@@ -1,0 +1,37 @@
+trigger: none
+
+pool:
+  vmImage: $(RUNNER)
+
+variables:
+  - name: azureSubscription
+    value: $(SERVICECONNECTION) #Build Administrators
+  - name: environment
+    value: prod
+  - name: devopsOrg
+    value: $(DEVOPSORG)
+  - name: devopsProject
+    value: $(DEVOPSPROJECT)
+  - group: system
+
+stages:
+  - stage: rerun
+    displayName: Rerun
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: rerun
+        displayName: Release
+        environment: ${{ variables.environment }}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: AzureCLI@2
+                  displayName: Rerun pipeline
+                  inputs:
+                    azureSubscription: ${{ variables.azureSubscription }}
+                    scriptType: pscore
+                    scriptPath: scripts/pipeline.ps1 
+                    arguments: ${{ variables.devopsOrg }} ${{ variables.devopsProject }}

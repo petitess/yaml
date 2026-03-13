@@ -1,0 +1,61 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - ci/deploy-error.yml
+
+schedules:
+  - cron: 0 1 * * *
+    branches:
+      include:
+        - mainx
+    always: true
+
+pool:
+  vmImage: $(RUNNER)
+
+variables:
+  - name: azureSubscription
+    value: $(SERVICECONNECTION) #Build Administrators
+  - name: environment
+    value: prod
+  - name: workingDirectory
+    value: /
+  - name: devopsOrg
+    value: $(DEVOPSORG)
+  - name: devopsProject
+    value: $(DEVOPSPROJECT)
+  - group: system
+
+stages:
+  - stage: build
+    displayName: Build
+    jobs:
+      - job: build
+        displayName: Build
+        steps:
+          - script: |
+              echo "This is project: ${{ variables.devopsProject }}"
+            displayName: "${{ variables.devopsProject }}"
+            workingDirectory: ${{ variables.workingDirectory }}
+
+          - task: AzureCLI@2
+            displayName: Error
+            inputs:
+              azureSubscription: ${{ variables.azureSubscription }}
+              scriptType: pscore
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              inlineScript: |
+                Write-Error "This is an error"
+
+          - task: AzureCLI@2
+            condition: failed()
+            displayName: Check pipeline
+            inputs:
+              azureSubscription: ${{ variables.azureSubscription }}
+              scriptType: pscore
+              scriptLocation: inlineScript
+              inlineScript: az pipelines run --org ${{ variables.devopsOrg }} --project ${{ variables.devopsProject }} --branch 'main' --name "deploy-rerun" --query definition
